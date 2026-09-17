@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --color-ink: #1e2a22;
+  --color-paper: #faf7f1;
+  --color-paper-raised: #f3eee3;
+  --color-accent: #2e6156;
+  --color-accent-ink: #f5f1e6;
+  --color-gold: #8a6a26;
+  --color-line: #e1dacb;
+  --color-muted: #6b6459;
+  --color-danger: #9c4a3c;
+}
+
+@theme inline {
+  --color-ink: var(--color-ink);
+  --color-paper: var(--color-paper);
+  --color-paper-raised: var(--color-paper-raised);
+  --color-accent: var(--color-accent);
+  --color-accent-ink: var(--color-accent-ink);
+  --color-gold: var(--color-gold);
+  --color-line: var(--color-line);
+  --color-muted: var(--color-muted);
+  --color-danger: var(--color-danger);
+
+  --font-display: var(--font-fraunces);
+  --font-body: var(--font-public-sans);
+  --font-mono: var(--font-plex-mono);
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
