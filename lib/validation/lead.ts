@@ -15,6 +15,16 @@ export const leadSchema = z.object({
   email: z.string().trim().email("Geçerli bir e-posta adresi gir."),
   preferredContact: z.enum(["whatsapp", "phone", "email"]),
   note: z.string().max(500).optional().default(""),
+
+  /** Client-generated once per form session (crypto.randomUUID()) and
+   * reused across retries — lets the Apps Script backend recognize a
+   * resubmitted request and avoid writing a duplicate Sheets row. */
+  submissionId: z.string().min(1, "Geçersiz istek."),
+
+  /** Hidden field real users never see or fill; a filled value means a
+   * bot submitted the form. Checked after validation, before any network
+   * call — see app/basvuru/actions.ts. */
+  honeypot: z.string().optional().default(""),
 });
 
 export type LeadInput = z.infer<typeof leadSchema>;

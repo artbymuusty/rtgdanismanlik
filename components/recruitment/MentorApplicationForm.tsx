@@ -13,6 +13,7 @@ type FormState = {
   germanyExperience: string;
   motivation: string;
   message: string;
+  honeypot: string;
 };
 
 const emptyState: FormState = {
@@ -23,6 +24,7 @@ const emptyState: FormState = {
   germanyExperience: "",
   motivation: "",
   message: "",
+  honeypot: "",
 };
 
 export function MentorApplicationForm() {
@@ -30,6 +32,10 @@ export function MentorApplicationForm() {
   const [values, setValues] = useState<FormState>(emptyState);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Generated once per visit and reused across retries, so a resubmit
+  // after a network error is recognized as the same request by the Apps
+  // Script backend instead of writing a duplicate Sheets row.
+  const [submissionId] = useState(() => crypto.randomUUID());
 
   function update<K extends keyof FormState>(key: K, value: string) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -40,7 +46,7 @@ export function MentorApplicationForm() {
     setStatus("submitting");
     setErrorMessage(null);
 
-    const result = await submitMentorApplication(values);
+    const result = await submitMentorApplication({ ...values, submissionId });
 
     if (result.ok) {
       setStatus("success");
@@ -64,6 +70,22 @@ export function MentorApplicationForm() {
 
   return (
     <form onSubmit={handleSubmit} className="rounded-[3px] border border-line bg-paper-raised p-6 sm:p-8">
+      {/* Honeypot: real users never see or reach this field (off-screen,
+          not tab-focusable, aria-hidden). A form-filling bot fills every
+          input it finds, tripping the server-side check. */}
+      <div aria-hidden="true" className="absolute left-[-9999px] top-auto h-0 w-0 overflow-hidden">
+        <label htmlFor="mentor-company">Şirket</label>
+        <input
+          id="mentor-company"
+          name="company"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={values.honeypot}
+          onChange={(e) => update("honeypot", e.target.value)}
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField id="firstName" label={t.fields.firstName} value={values.firstName} onChange={(v) => update("firstName", v)} />
         <TextField id="lastName" label={t.fields.lastName} value={values.lastName} onChange={(v) => update("lastName", v)} />

@@ -8,7 +8,7 @@ import { cn } from "@/lib/cn";
 import { submitLead } from "@/app/basvuru/actions";
 
 type Answers = Record<string, string>;
-type ContactField = "firstName" | "lastName" | "phone" | "email" | "preferredContact" | "note";
+type ContactField = "firstName" | "lastName" | "phone" | "email" | "preferredContact" | "note" | "honeypot";
 type Contact = Record<ContactField, string>;
 type FlowStatus = "intro" | "question" | "contact" | "submitting" | "success" | "error";
 
@@ -19,6 +19,7 @@ const emptyContact: Contact = {
   email: "",
   preferredContact: "",
   note: "",
+  honeypot: "",
 };
 
 export function AssessmentFlow({
@@ -38,6 +39,10 @@ export function AssessmentFlow({
   );
   const [contact, setContact] = useState<Contact>(emptyContact);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Generated once per visit and reused across retries, so a resubmit
+  // after a network error is recognized as the same request by the Apps
+  // Script backend instead of writing a duplicate Sheets row.
+  const [submissionId] = useState(() => crypto.randomUUID());
 
   const currentStep = steps[stepIndex];
   const totalSteps = steps.length + 1; // + contact step
@@ -92,6 +97,8 @@ export function AssessmentFlow({
       email: contact.email,
       preferredContact: contact.preferredContact as "whatsapp" | "phone" | "email",
       note: contact.note,
+      submissionId,
+      honeypot: contact.honeypot,
     });
 
     if (result.ok) {
@@ -288,6 +295,22 @@ function ContactStep({
     <div>
       <h2 className="font-display text-2xl font-semibold sm:text-3xl">{title}</h2>
       <p className="mt-2 text-sm text-muted">{description}</p>
+
+      {/* Honeypot: real users never see or reach this field (off-screen,
+          not tab-focusable, aria-hidden). A form-filling bot fills every
+          input it finds, tripping the server-side check. */}
+      <div aria-hidden="true" className="absolute left-[-9999px] top-auto h-0 w-0 overflow-hidden">
+        <label htmlFor="company">Şirket</label>
+        <input
+          id="company"
+          name="company"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={contact.honeypot}
+          onChange={(event) => onChange("honeypot", event.target.value)}
+        />
+      </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField id="firstName" label={fields.firstName} value={contact.firstName} onChange={(v) => onChange("firstName", v)} />
