@@ -21,6 +21,15 @@ export const siteConfig = {
    * dependent UI rather than falling back to a placeholder. */
   whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "",
   contactEmail: "",
+
+  /** Legal/company identity shown on /gizlilik, /kvkk, /kullanim-sartlari.
+   * Empty until a real company entity is registered — pages fall back to
+   * `siteConfig.name` as the controller name, never an invented company. */
+  companyName: "",
+  companyAddress: "",
+  taxOffice: "",
+  taxNumber: "",
+  mersisNo: "",
 } as const;
 
 /**
