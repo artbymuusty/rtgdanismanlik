@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const cefrLevel = z.enum(["undisclosed", "a1", "a2", "b1", "b2", "c1", "c2", "native"]);
+const cefrLevel = z.enum(["undisclosed", "none", "a1", "a2", "b1", "b2", "c1", "c2", "native"]);
 
 export const leadSchema = z
   .object({
@@ -17,10 +17,11 @@ export const leadSchema = z
     target: z.string().min(1),
     timeline: z.string().min(1),
 
-    /** Optional intake context for the consultant ahead of the first
-     * call (background/experience/what they're hoping for) — distinct
-     * from `message`, which is a question the applicant asks RTG. */
-    background: z.string().max(2000).optional().default(""),
+    /** Required intake context for the consultant ahead of the first
+     * call (background/experience/what they're hoping for) — this is the
+     * form's core purpose, distinct from `message`, which is a question
+     * the applicant asks RTG and stays optional. */
+    background: z.string().trim().min(1, "Kendinden birkaç cümleyle bahsetmen gerekiyor.").max(2000),
     message: z.string().max(2000).optional().default(""),
 
     /** How the applicant heard about RTG. "other" requires

@@ -115,8 +115,8 @@ function writeLead(body) {
   var payload = body.payload || {};
   var required = [
     "stage", "educationStatus", "interestArea", "englishLevel", "germanLevel",
-    "target", "timeline", "referralSource",
-    "firstName", "lastName", "phone", "email", "preferredContact"
+    "target", "timeline", "background",
+    "firstName", "lastName", "phone", "email", "preferredContact", "referralSource"
   ];
   for (var i = 0; i < required.length; i++) {
     if (!payload[required[i]]) return { ok: false, error: "missing_field:" + required[i] };
@@ -141,7 +141,7 @@ function writeLead(body) {
     payload.interestArea,
     payload.englishLevel, payload.germanLevel,
     payload.target, payload.timeline,
-    payload.background || "", payload.message || "",
+    payload.background, payload.message || "",
     REFERRAL_LABELS[payload.referralSource] || payload.referralSource,
     payload.referralSource === "other" ? (payload.referralSourceOther || "") : "",
     // Son İletişim, Sonraki Aksiyon, Notlar, Sorumlu — CRM tarafından elle doldurulur
