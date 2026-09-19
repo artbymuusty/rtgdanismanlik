@@ -246,6 +246,10 @@ export interface Dictionary {
   assessment: {
     intro: { eyebrow: string; title: string; description: string; startCta: string };
     steps: AssessmentStep[];
+    /** Label for the free-text input shown only when the "referralSource"
+     * step is answered "other" — not part of the generic AssessmentStep
+     * shape since no other step needs a conditional follow-up field. */
+    referralOtherLabel: string;
     contactStep: {
       title: string;
       description: string;

@@ -33,11 +33,14 @@ var MENTOR_SHEET_NAME = "MENTOR_APPLICATIONS";
 // apart. "Submission ID" is last so a manually-added CRM column earlier
 // in the row never shifts the idempotency lookup.
 var LEADS_COLUMNS = [
-  "ID", "Created At", "Durum", "Ad", "Soyad", "Email", "Telefon",
-  "Tercih Edilen İletişim", "Aşama", "Eğitim Durumu", "İlgi Alanı",
-  "Dil Seviyesi", "Hedef", "Zaman Çizelgesi", "Mesaj", "Ek Not",
-  "Şehir", "Üniversite", "Bölüm", "Son İletişim", "Sonraki Aksiyon",
-  "Notlar", "Sorumlu", "Görüşme Tarihi", "Drive Folder", "Meet Link",
+  "ID", "Created At", "Durum",
+  "Ad", "Soyad", "Email", "Telefon", "Tercih Edilen İletişim",
+  "Aşama", "Eğitim Durumu", "İlgi Alanı", "İngilizce Seviyesi", "Almanca Seviyesi",
+  "Almanya Hedefi", "Zaman Çizelgesi",
+  "Hakkında / Deneyim", "Mesaj",
+  "Bizi Nereden Duydunuz", "Kaynak Detayı",
+  "Son İletişim", "Sonraki Aksiyon", "Notlar", "Sorumlu",
+  "Mentor ID", "Drive Folder",
   "Source", "Submission ID"
 ];
 
@@ -48,12 +51,11 @@ var MENTOR_COLUMNS = [
   "Source", "Submission ID"
 ];
 
-// Columns actually collected by the real /basvuru and /bize-katilin forms
-// (see REBUILD_ANALYSIS.md §7 / lib/validation/*.ts) are: Şehir,
-// Üniversite, Bölüm, Son İletişim, Sonraki Aksiyon, Notlar, Sorumlu,
-// Görüşme Tarihi, Drive Folder, Meet Link — those columns start blank and
-// are filled in manually (or by a later automation) as part of running
-// the CRM, never by this script.
+// "Son İletişim", "Sonraki Aksiyon", "Notlar", "Sorumlu" are CRM-only —
+// never sent by the form, always written blank, filled in manually as
+// part of running the CRM. "Mentor ID" and "Drive Folder" are likewise
+// always written blank for now — reserved so a future LEAD->MENTOR
+// relation and Drive automation don't require a schema change later.
 
 function doPost(e) {
   var result;
@@ -97,14 +99,31 @@ function handleRequest(e) {
   return { ok: false, error: "unknown_type" };
 }
 
+var REFERRAL_LABELS = {
+  instagram: "Instagram",
+  linkedin: "LinkedIn",
+  google_search: "Google / İnternet araması",
+  university_campus: "Üniversite / Kampüs",
+  friend_referral: "Bir arkadaşım / Tanıdığım",
+  event_booth: "Etkinlik / Stand",
+  whatsapp: "WhatsApp",
+  youtube: "YouTube",
+  other: "Diğer"
+};
+
 function writeLead(body) {
   var payload = body.payload || {};
   var required = [
-    "stage", "educationStatus", "interestArea", "languageLevel", "target",
-    "timeline", "firstName", "lastName", "phone", "email", "preferredContact"
+    "stage", "educationStatus", "interestArea", "englishLevel", "germanLevel",
+    "target", "timeline", "referralSource",
+    "firstName", "lastName", "phone", "email", "preferredContact"
   ];
   for (var i = 0; i < required.length; i++) {
     if (!payload[required[i]]) return { ok: false, error: "missing_field:" + required[i] };
+  }
+
+  if (payload.referralSource === "other" && !payload.referralSourceOther) {
+    return { ok: false, error: "missing_field:referralSourceOther" };
   }
 
   var sheet = getSheet(LEADS_SHEET_NAME, LEADS_COLUMNS);
@@ -119,10 +138,16 @@ function writeLead(body) {
     "Yeni",
     payload.firstName, payload.lastName, payload.email, payload.phone,
     payload.preferredContact, payload.stage, payload.educationStatus,
-    payload.interestArea, payload.languageLevel, payload.target,
-    payload.timeline, payload.message || "", payload.note || "",
-    "", "", "", "", "",
-    "", "", "", "", "",
+    payload.interestArea,
+    payload.englishLevel, payload.germanLevel,
+    payload.target, payload.timeline,
+    payload.background || "", payload.message || "",
+    REFERRAL_LABELS[payload.referralSource] || payload.referralSource,
+    payload.referralSource === "other" ? (payload.referralSourceOther || "") : "",
+    // Son İletişim, Sonraki Aksiyon, Notlar, Sorumlu — CRM tarafından elle doldurulur
+    "", "", "", "",
+    // Mentor ID, Drive Folder — ileride LEAD->MENTOR ilişkisi / Drive otomasyonu için ayrılmış, şimdilik boş
+    "", "",
     body.source || "rtg-website", body.submissionId
   ];
   sheet.appendRow(row);

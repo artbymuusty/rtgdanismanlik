@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { getDictionary } from "@/lib/content";
 import type { AssessmentOption } from "@/lib/content/types";
+import type { LeadInput } from "@/lib/validation/lead";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { submitLead } from "@/app/basvuru/actions";
@@ -50,12 +51,32 @@ export function AssessmentFlow({
 
   const canAdvance = useMemo(() => {
     if (!currentStep) return false;
+    if (currentStep.id === "referralSource") {
+      if (!answers.referralSource) return false;
+      if (answers.referralSource === "other") {
+        return Boolean(answers.referralSourceOther?.trim());
+      }
+      return true;
+    }
     if (currentStep.optional) return true;
     return Boolean(answers[currentStep.id]?.trim());
   }, [answers, currentStep]);
 
   function start() {
     setStatus("question");
+  }
+
+  function handleStepAnswerChange(value: string) {
+    if (!currentStep) return;
+    setAnswers((prev) => {
+      const next = { ...prev, [currentStep.id]: value };
+      // Switching away from "other" clears any previously entered text so
+      // a stale value never gets submitted alongside a different answer.
+      if (currentStep.id === "referralSource" && value !== "other") {
+        next.referralSourceOther = "";
+      }
+      return next;
+    });
   }
 
   function goNext() {
@@ -87,10 +108,14 @@ export function AssessmentFlow({
       stage: answers.stage ?? "",
       educationStatus: answers.educationStatus ?? "",
       interestArea: answers.interestArea ?? "",
-      languageLevel: answers.languageLevel ?? "",
+      englishLevel: (answers.englishLevel ?? "undisclosed") as LeadInput["englishLevel"],
+      germanLevel: (answers.germanLevel ?? "undisclosed") as LeadInput["germanLevel"],
       target: answers.target ?? "",
       timeline: answers.timeline ?? "",
+      background: answers.background ?? "",
       message: answers.message ?? "",
+      referralSource: (answers.referralSource ?? "other") as LeadInput["referralSource"],
+      referralSourceOther: answers.referralSource === "other" ? (answers.referralSourceOther ?? "") : "",
       firstName: contact.firstName,
       lastName: contact.lastName,
       phone: contact.phone,
@@ -159,15 +184,31 @@ export function AssessmentFlow({
       </div>
 
       {!isContactStep && currentStep ? (
-        <QuestionStep
-          question={currentStep.question}
-          helper={currentStep.helper}
-          type={currentStep.type}
-          placeholder={currentStep.placeholder}
-          options={currentStep.options}
-          value={answers[currentStep.id] ?? ""}
-          onChange={(value) => setAnswers((prev) => ({ ...prev, [currentStep.id]: value }))}
-        />
+        <>
+          <QuestionStep
+            question={currentStep.question}
+            helper={currentStep.helper}
+            type={currentStep.type}
+            placeholder={currentStep.placeholder}
+            options={currentStep.options}
+            value={answers[currentStep.id] ?? ""}
+            onChange={handleStepAnswerChange}
+          />
+          {currentStep.id === "referralSource" && answers.referralSource === "other" ? (
+            <div className="mt-6">
+              <label htmlFor="referralSourceOther" className="mb-2 block text-sm font-medium text-ink">
+                {t.referralOtherLabel}
+              </label>
+              <input
+                id="referralSourceOther"
+                type="text"
+                value={answers.referralSourceOther ?? ""}
+                onChange={(event) => setAnswers((prev) => ({ ...prev, referralSourceOther: event.target.value }))}
+                className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-sm text-ink outline-none focus-visible:border-accent"
+              />
+            </div>
+          ) : null}
+        </>
       ) : (
         <ContactStep
           contact={contact}
