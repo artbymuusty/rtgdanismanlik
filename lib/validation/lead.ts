@@ -44,8 +44,7 @@ export const leadSchema = z
     lastName: z.string().trim().min(1, "Soyad gerekli."),
     phone: z.string().trim().min(6, "Geçerli bir telefon numarası gir."),
     email: z.string().trim().email("Geçerli bir e-posta adresi gir."),
-    preferredContact: z.enum(["whatsapp", "phone", "email"]),
-    note: z.string().max(500).optional().default(""),
+    preferredContact: z.enum(["whatsapp", "phone"]),
 
     /** Client-generated once per form session (crypto.randomUUID()) and
      * reused across retries — lets the Apps Script backend recognize a

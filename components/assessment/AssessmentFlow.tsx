@@ -9,7 +9,7 @@ import { cn } from "@/lib/cn";
 import { submitLead } from "@/app/basvuru/actions";
 
 type Answers = Record<string, string>;
-type ContactField = "firstName" | "lastName" | "phone" | "email" | "preferredContact" | "note" | "honeypot";
+type ContactField = "firstName" | "lastName" | "phone" | "email" | "preferredContact" | "honeypot";
 type Contact = Record<ContactField, string>;
 type FlowStatus = "intro" | "question" | "contact" | "submitting" | "success" | "error";
 
@@ -19,7 +19,6 @@ const emptyContact: Contact = {
   phone: "",
   email: "",
   preferredContact: "",
-  note: "",
   honeypot: "",
 };
 
@@ -120,8 +119,7 @@ export function AssessmentFlow({
       lastName: contact.lastName,
       phone: contact.phone,
       email: contact.email,
-      preferredContact: contact.preferredContact as "whatsapp" | "phone" | "email",
-      note: contact.note,
+      preferredContact: contact.preferredContact as "whatsapp" | "phone",
       submissionId,
       honeypot: contact.honeypot,
     });
@@ -327,7 +325,6 @@ function ContactStep({
     email: string;
     preferredContact: string;
     preferredContactOptions: AssessmentOption[];
-    note: string;
   };
   title: string;
   description: string;
@@ -382,19 +379,6 @@ function ContactStep({
           })}
         </div>
       </fieldset>
-
-      <div className="mt-5">
-        <label htmlFor="note" className="mb-2 block text-sm font-medium text-ink">
-          {fields.note}
-        </label>
-        <textarea
-          id="note"
-          value={contact.note}
-          onChange={(event) => onChange("note", event.target.value)}
-          rows={3}
-          className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-sm text-ink outline-none focus-visible:border-accent"
-        />
-      </div>
     </div>
   );
 }

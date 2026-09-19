@@ -653,9 +653,7 @@ export const tr: Dictionary = {
         preferredContactOptions: [
           { value: "whatsapp", label: "WhatsApp" },
           { value: "phone", label: "Telefon" },
-          { value: "email", label: "E-posta" },
         ],
-        note: "Varsa bize uygun olduğun bir zaman bırakabilirsin (opsiyonel).",
       },
     },
     submit: { label: "Gönder", loading: "Gönderiliyor..." },

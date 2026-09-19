@@ -260,7 +260,6 @@ export interface Dictionary {
         email: string;
         preferredContact: string;
         preferredContactOptions: AssessmentOption[];
-        note: string;
       };
     };
     submit: { label: string; loading: string };
