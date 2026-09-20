@@ -1,4 +1,6 @@
 import { getDictionary } from "@/lib/content";
+import type { Locale } from "@/lib/i18n/config";
+import { localizedPath } from "@/lib/i18n/routes";
 import { mentors } from "@/lib/content/mentors";
 import { demoMentors } from "@/lib/content/mentors.demo";
 import { demoContentEnabled } from "@/lib/content/demo";
@@ -7,8 +9,9 @@ import { Container } from "@/components/ui/Container";
 import { EditorialPhoto } from "@/components/ui/EditorialPhoto";
 import { Reveal } from "@/components/ui/Reveal";
 
-export function MentorshipTeaser() {
-  const t = getDictionary().home.mentorship;
+export function MentorshipTeaser({ lang }: { lang: Locale }) {
+  const dict = getDictionary(lang);
+  const t = dict.home.mentorship;
   const isDemo = mentors.length === 0 && demoContentEnabled;
   const featured = (isDemo ? demoMentors : mentors)[0];
 
@@ -19,7 +22,7 @@ export function MentorshipTeaser() {
           <h2 className="text-balance font-display text-3xl font-semibold sm:text-4xl">{t.title}</h2>
           <p className="mt-4 max-w-lg text-muted">{t.description}</p>
           <div className="mt-6">
-            <Button href="/mentorluk" variant="secondary">
+            <Button href={localizedPath(lang, "mentorship")} variant="secondary">
               {t.cta}
             </Button>
           </div>
@@ -35,7 +38,7 @@ export function MentorshipTeaser() {
             />
             {isDemo ? (
               <span className="absolute right-3 top-3 rounded-full border border-gold bg-paper/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-gold">
-                Örnek
+                {dict.common.sample}
               </span>
             ) : null}
             {featured.quote ? (
@@ -46,9 +49,9 @@ export function MentorshipTeaser() {
           </div>
         ) : (
           <div className="rounded-[3px] border border-line bg-paper-raised p-8">
-            <p className="font-mono text-xs uppercase tracking-[0.08em] text-gold">Yaklaşımımız</p>
+            <p className="font-mono text-xs uppercase tracking-[0.08em] text-gold">{t.approachEyebrow}</p>
             <p className="mt-3 font-display text-xl italic text-ink">
-              Görevleri başvuru yapmak değil, doğru kararı vermeni kolaylaştırmak.
+              {t.approachQuote}
             </p>
           </div>
         )}

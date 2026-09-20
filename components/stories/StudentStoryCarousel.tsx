@@ -19,7 +19,17 @@ const arrowButtonClasses =
  * keyboard both drive the same native scroll position, so there is exactly
  * one source of truth for "where the carousel is."
  */
-export function StudentStoryCarousel({ stories, isDemo }: { stories: StudentStory[]; isDemo: boolean }) {
+export function StudentStoryCarousel({
+  stories,
+  isDemo,
+  labels,
+  sample,
+}: {
+  stories: StudentStory[];
+  isDemo: boolean;
+  labels: { carousel: string; previous: string; next: string };
+  sample: string;
+}) {
   const trackRef = useRef<HTMLDivElement>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [index, setIndex] = useState(0);
@@ -80,7 +90,7 @@ export function StudentStoryCarousel({ stories, isDemo }: { stories: StudentStor
   if (stories.length === 0) return null;
 
   return (
-    <div role="region" aria-roledescription="carousel" aria-label="Diğer öğrenci hikâyeleri">
+    <div role="region" aria-roledescription="carousel" aria-label={labels.carousel}>
       <div className="mb-5 flex items-center justify-between">
         <p aria-live="polite" className="font-mono text-xs tabular-nums text-muted">
           {String(index + 1).padStart(2, "0")}/{String(stories.length).padStart(2, "0")}
@@ -88,7 +98,7 @@ export function StudentStoryCarousel({ stories, isDemo }: { stories: StudentStor
         <div className="hidden items-center gap-2 sm:flex">
           <button
             type="button"
-            aria-label="Önceki öğrenci hikâyesi"
+            aria-label={labels.previous}
             disabled={atStart}
             onClick={() => scrollByCards(-1)}
             className={arrowButtonClasses}
@@ -97,7 +107,7 @@ export function StudentStoryCarousel({ stories, isDemo }: { stories: StudentStor
           </button>
           <button
             type="button"
-            aria-label="Sonraki öğrenci hikâyesi"
+            aria-label={labels.next}
             disabled={atEnd}
             onClick={() => scrollByCards(1)}
             className={arrowButtonClasses}
@@ -118,7 +128,7 @@ export function StudentStoryCarousel({ stories, isDemo }: { stories: StudentStor
       >
         {stories.map((story, i) => (
           <div key={story.id} className="w-[min(78vw,300px)] shrink-0 snap-start">
-            <StudentStoryCard story={story} isDemo={isDemo} priority={i === 0} />
+            <StudentStoryCard story={story} isDemo={isDemo} priority={i === 0} sample={sample} />
           </div>
         ))}
       </div>

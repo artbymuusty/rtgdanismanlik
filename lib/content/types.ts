@@ -1,4 +1,7 @@
-export type Locale = "tr" | "en" | "de";
+import type { Locale } from "@/lib/i18n/config";
+import type { RouteKey } from "@/lib/i18n/routes";
+
+export type { Locale };
 
 export interface StageOption {
   id: string;
@@ -100,6 +103,90 @@ export interface Dictionary {
     defaultTitle: string;
     titleTemplate: string;
     defaultDescription: string;
+    /** One-line brand tagline (JSON-LD, share image alt). */
+    tagline: string;
+    /** Small uppercase line on the social-share image. */
+    ogEyebrow: string;
+  };
+  /** Small strings shared by many components (aria labels, generic buttons, 404/error pages). */
+  common: {
+    skipToContent: string;
+    mainNavLabel: string;
+    moreNavLabel: string;
+    mobileNavLabel: string;
+    menuOpenLabel: string;
+    menuCloseLabel: string;
+    menuButtonOpen: string;
+    menuButtonClose: string;
+    back: string;
+    next: string;
+    backHome: string;
+    whatsappWrite: string;
+    sample: string;
+    socialLinksLabel: string;
+    sampleAccount: string;
+    honeypotLabel: string;
+    languageLabel: string;
+    languageNames: { tr: string; en: string };
+    notFound: { eyebrow: string; title: string; description: string; home: string; contact: string };
+    error: { eyebrow: string; title: string; description: string; retry: string; home: string };
+  };
+  stories: {
+    homeTitle: string;
+    homeSubtitle: string;
+    viewAll: string;
+    pageTitle: string;
+    pageIntro: string;
+    pageDescription: string;
+    empty: string;
+    featuredLabel: string;
+    startedFrom: string;
+    stepsTaken: string;
+    nowWhere: string;
+    carouselLabel: string;
+    previous: string;
+    nextStory: string;
+  };
+  mentors: {
+    ourMentors: string;
+    germanyExperience: string;
+    education: string;
+    specialty: string;
+  };
+  joinUsCta: { eyebrow: string; title: string; description: string; cta: string };
+  legal: {
+    updatedLabel: string;
+    privacy: {
+      title: string;
+      description: string;
+      controller: { heading: string };
+      collected: { heading: string; body: string };
+      purpose: { heading: string; body: string };
+      retention: {
+        heading: string;
+        bodyPrefix: string;
+        withEmail: string;
+        beforeLink: string;
+        linkText: string;
+        afterLink: string;
+      };
+    };
+    kvkk: {
+      title: string;
+      description: string;
+      subtitle: string;
+      controller: { heading: string; mersis: string; taxOffice: string };
+      data: { heading: string; body: string };
+      purpose: { heading: string; body: string };
+      rights: { heading: string; withEmail: string; beforeLink: string; linkText: string; afterLink: string };
+    };
+    terms: {
+      title: string;
+      description: string;
+      scope: { heading: string; body: string };
+      liability: { heading: string; body: string };
+      contact: { heading: string; withEmail: string; beforeLink: string; linkText: string; afterLink: string };
+    };
   };
   nav: {
     home: string;
@@ -121,11 +208,14 @@ export interface Dictionary {
       subtitle: string;
       ctaPrimary: string;
       ctaSecondary: string;
+      imageAlt: string;
     };
     journey: {
       eyebrow: string;
       title: string;
       description: string;
+      mapOrigin: string;
+      mapDestination: string;
     };
     stageSelector: {
       title: string;
@@ -147,6 +237,8 @@ export interface Dictionary {
       title: string;
       description: string;
       cta: string;
+      approachEyebrow: string;
+      approachQuote: string;
     };
     visualStory: {
       eyebrow: string;
@@ -168,6 +260,7 @@ export interface Dictionary {
       cta: string;
     };
     finalCta: {
+      eyebrow: string;
       title: string;
       description: string;
       ctaPrimary: string;
@@ -178,6 +271,7 @@ export interface Dictionary {
     title: string;
     intro: string;
     items: ServiceItem[];
+    labels: { problem: string; help: string; forWhom: string; process: string; scope: string };
   };
   mentorship: {
     title: string;
@@ -205,6 +299,10 @@ export interface Dictionary {
     comparisonTitle: string;
     comparisonNote: string;
     honestyNote: string;
+    included: string;
+    tableService: string;
+    tableFee: string;
+    includedAria: string;
     cta: { title: string; description: string; label: string };
   };
   faq: {
@@ -218,9 +316,12 @@ export interface Dictionary {
     whatsapp: { title: string; description: string; cta: string };
     email: { title: string; description: string; cta: string };
     formCta: { title: string; description: string; cta: string };
+    photoCaption: string;
+    photoAlt: string;
   };
   bizeKatilin: {
     eyebrow: string;
+    applyEyebrow: string;
     title: string;
     intro: string;
     imageCaption: string;
@@ -246,6 +347,10 @@ export interface Dictionary {
   assessment: {
     intro: { eyebrow: string; title: string; description: string; startCta: string };
     steps: AssessmentStep[];
+    /** Shown when the visitor tries to submit with a required contact field empty. */
+    contactValidation: string;
+    metaTitle: string;
+    metaDescription: string;
     /** Label for the free-text input shown only when the "referralSource"
      * step is answered "other" — not part of the generic AssessmentStep
      * shape since no other step needs a conditional follow-up field. */
@@ -275,7 +380,7 @@ export interface Dictionary {
     description: string;
     navTitle: string;
     legalTitle: string;
-    legalLinks: { label: string; href: string }[];
+    legalLinks: { label: string; route: RouteKey }[];
     rights: string;
   };
 }

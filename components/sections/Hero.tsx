@@ -1,17 +1,19 @@
 import Image from "next/image";
 import { getDictionary } from "@/lib/content";
+import type { Locale } from "@/lib/i18n/config";
+import { localizedPath } from "@/lib/i18n/routes";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 
-export function Hero() {
-  const t = getDictionary().home.hero;
+export function Hero({ lang }: { lang: Locale }) {
+  const t = getDictionary(lang).home.hero;
 
   return (
     <section className="relative overflow-hidden border-b border-line">
       <div className="absolute inset-0">
         <Image
           src="/images/hero/berlin-hauptbahnhof.jpg"
-          alt="Berlin Hauptbahnhof, Almanya'ya varışın ilk durağı"
+          alt={t.imageAlt}
           fill
           priority
           sizes="100vw"
@@ -29,9 +31,9 @@ export function Hero() {
           </h1>
           <p className="mt-6 max-w-md text-lg text-paper/80">{t.subtitle}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button href="/basvuru">{t.ctaPrimary}</Button>
+            <Button href={localizedPath(lang, "apply")}>{t.ctaPrimary}</Button>
             <Button
-              href="/nasil-yardimci-oluyoruz"
+              href={localizedPath(lang, "services")}
               variant="secondary"
               className="!border-paper/40 !text-paper hover:!bg-paper hover:!text-ink"
             >

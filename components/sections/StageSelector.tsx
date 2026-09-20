@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { getDictionary } from "@/lib/content";
+import type { Locale } from "@/lib/i18n/config";
+import { localizedPath } from "@/lib/i18n/routes";
+import type { Dictionary } from "@/lib/content/types";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
 import { cn } from "@/lib/cn";
 
-export function StageSelector() {
-  const t = getDictionary().home.stageSelector;
+export function StageSelector({ lang, t }: { lang: Locale; t: Dictionary["home"]["stageSelector"] }) {
   const allStages = [...t.stages, t.fallback];
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -49,7 +50,7 @@ export function StageSelector() {
           <div className="mt-6 rounded-[3px] border border-accent bg-paper p-6 sm:p-8">
             <p className="max-w-2xl text-ink">{selected.description}</p>
             <div className="mt-5">
-              <Button href={`/basvuru?asama=${selected.id}`}>{selected.cta}</Button>
+              <Button href={`${localizedPath(lang, "apply")}?asama=${selected.id}`}>{selected.cta}</Button>
             </div>
           </div>
         ) : null}

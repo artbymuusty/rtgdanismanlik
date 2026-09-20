@@ -3,12 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { routeKeyFromPath } from "@/lib/i18n/routes";
 import { cn } from "@/lib/cn";
 
 /**
  * Shared nav link for Header + MobileMenu: real aria-current="page" on the
  * active route (not just a color change) and one consistent hover/focus
  * language across both — default/hover/active states, no pills or boxes.
+ *
+ * "Active" compares route keys rather than raw strings, so it stays correct
+ * whichever form of the URL (public English slug or internal folder) the
+ * router reports.
  */
 export function NavLink({
   href,
@@ -27,7 +32,8 @@ export function NavLink({
   underline?: boolean;
 }) {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const currentKey = routeKeyFromPath(pathname);
+  const isActive = currentKey !== null && currentKey === routeKeyFromPath(href);
 
   return (
     <Link

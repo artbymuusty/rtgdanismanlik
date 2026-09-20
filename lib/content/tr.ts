@@ -1,5 +1,6 @@
 import type { Dictionary } from "./types";
 import { siteConfig } from "@/lib/site-config";
+import { errorMessages } from "./error-messages";
 
 export const tr: Dictionary = {
   meta: {
@@ -8,6 +9,130 @@ export const tr: Dictionary = {
     titleTemplate: `%s — ${siteConfig.name}`,
     defaultDescription:
       "Almanya'da eğitim hayatını ilerletmek isteyen herkes için: nereden başlayacağını bilsen de bilmesen de, mevcut durumunu birlikte değerlendirip sana uygun bir sonraki adımı konuşuyoruz.",
+    tagline: "Almanya eğitim yolculuğunda yol arkadaşın",
+    ogEyebrow: "Almanya'da Eğitim",
+  },
+  common: {
+    skipToContent: "İçeriğe geç",
+    mainNavLabel: "Ana menü",
+    moreNavLabel: "Diğer sayfalar",
+    mobileNavLabel: "Mobil menü",
+    menuOpenLabel: "Menüyü aç",
+    menuCloseLabel: "Menüyü kapat",
+    menuButtonOpen: "Menü",
+    menuButtonClose: "Kapat",
+    back: "Geri",
+    next: "İleri",
+    backHome: "Ana Sayfaya Dön",
+    whatsappWrite: "WhatsApp'tan Yaz",
+    sample: "Örnek",
+    socialLinksLabel: "Sosyal medya bağlantıları",
+    sampleAccount: "örnek hesap",
+    honeypotLabel: "Şirket",
+    languageLabel: "Dil",
+    languageNames: { tr: "Türkçe", en: "English" },
+    notFound: {
+      eyebrow: "404",
+      title: "Aradığın sayfayı bulamadık.",
+      description: "Bağlantı eskimiş ya da adres yanlış yazılmış olabilir. Ana sayfadan devam edebilirsin.",
+      home: "Ana Sayfaya Dön",
+      contact: "Bize Ulaş",
+    },
+    error: errorMessages.tr,
+  },
+  stories: {
+    homeTitle: "Bu yolculukta yalnız değildiler.",
+    homeSubtitle: "Bu yolculuktan gerçekten geçmiş olanlar.",
+    viewAll: "Tüm Hikâyeleri Gör",
+    pageTitle: "Öğrenci Hikâyeleri",
+    pageIntro: "Her yol aynı başlamıyor. Ama bazen doğru bir konuşma, sonraki adımı görmeyi kolaylaştırıyor.",
+    pageDescription:
+      "Bu yolculuktan gerçekten geçmiş olanların hikâyeleri: nereden başladılar, hangi adımlardan geçtiler, şimdi nerede?",
+    empty: "Henüz burada paylaşabileceğimiz bir hikâye yok. İlk hikâyeler geldiğinde bu sayfa güncellenecek.",
+    featuredLabel: "Öne Çıkan Hikâye",
+    startedFrom: "Nereden başladı?",
+    stepsTaken: "Birlikte hangi adımlardan geçildi?",
+    nowWhere: "Şimdi nerede?",
+    carouselLabel: "Diğer öğrenci hikâyeleri",
+    previous: "Önceki öğrenci hikâyesi",
+    nextStory: "Sonraki öğrenci hikâyesi",
+  },
+  mentors: {
+    ourMentors: "Mentorlarımız",
+    germanyExperience: "Almanya deneyimi",
+    education: "Eğitim geçmişi",
+    specialty: "Uzmanlık alanı",
+  },
+  joinUsCta: {
+    eyebrow: "Bize Katılın",
+    title: "Almanya'da okudun mu? Sen de mentor olabilirsin.",
+    description:
+      "Bu süreçten geçmiş olman, senden sonra gelen birine büyük fark yaratır. Deneyimini paylaşmak istersen seni dinlemek isteriz.",
+    cta: "Mentor Olarak Başvur",
+  },
+  legal: {
+    updatedLabel: "Son güncelleme",
+    privacy: {
+      title: "Gizlilik Politikası",
+      description: `${siteConfig.name} gizlilik politikası.`,
+      controller: { heading: "Veri sorumlusu" },
+      collected: {
+        heading: "Hangi bilgileri topluyoruz?",
+        body: "“Yolculuğunu Konuşalım” formunu doldurduğunda ad, soyad, telefon/WhatsApp numarası, e-posta adresi ve paylaştığın eğitim durumu / hedef bilgilerini alıyoruz. İletişim sayfası üzerinden WhatsApp veya e-posta ile ulaştığında, ilgili platformun kendi gizlilik kuralları geçerlidir.",
+      },
+      purpose: {
+        heading: "Bu bilgileri ne için kullanıyoruz?",
+        body: "Yalnızca seninle iletişime geçmek ve görüşmeye hazırlanmak için kullanıyoruz. Bilgilerini üçüncü taraflara satmıyor veya pazarlama amacıyla paylaşmıyoruz.",
+      },
+      retention: {
+        heading: "Verilerin saklanması",
+        bodyPrefix: "Bilgilerin, erişimi yalnızca yetkili ekip üyeleriyle sınırlı olan güvenli bir ortamda saklanır.",
+        withEmail: "Bilgilerinin silinmesini istediğinde {email} adresine yazabilirsin.",
+        beforeLink: "Bilgilerinin silinmesini istediğinde ",
+        linkText: "iletişim sayfasındaki",
+        afterLink: " kanallardan bize ulaşabilirsin.",
+      },
+    },
+    kvkk: {
+      title: "KVKK Aydınlatma Metni",
+      description: `${siteConfig.name} KVKK aydınlatma metni.`,
+      subtitle: "6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında",
+      controller: { heading: "Veri sorumlusu", mersis: "MERSİS", taxOffice: "V.D." },
+      data: {
+        heading: "İşlenen kişisel veriler",
+        body: "Ad, soyad, telefon numarası, e-posta adresi, eğitim durumu ve hedeflerine dair paylaştığın bilgiler.",
+      },
+      purpose: {
+        heading: "İşleme amacı",
+        body: "Seninle iletişime geçmek, mentorluk görüşmesi hazırlamak ve talep ettiğin bilgilendirmeyi yapmak.",
+      },
+      rights: {
+        heading: "Haklarınız",
+        withEmail: "KVKK madde 11 kapsamındaki haklarını kullanmak için {email} adresine yazabilirsin.",
+        beforeLink: "KVKK madde 11 kapsamındaki haklarını kullanmak için ",
+        linkText: "iletişim sayfasındaki",
+        afterLink: " kanallardan bize ulaşabilirsin.",
+      },
+    },
+    terms: {
+      title: "Kullanım Şartları",
+      description: `${siteConfig.name} kullanım şartları.`,
+      scope: {
+        heading: "Hizmetin kapsamı",
+        body: `${siteConfig.name}, Almanya'da eğitim süreci konusunda yönlendirme ve mentorluk desteği sunar. Üniversite kabulü, vize onayı veya başka bir resmi kararın garantisini vermez; bu kararlar ilgili üniversite, konsolosluk ve resmi kurumların yetkisindedir.`,
+      },
+      liability: {
+        heading: "Sorumluluk",
+        body: "Paylaştığımız bilgi ve yönlendirmeler, görüşme anındaki bilgilere dayanır; resmi kurumların güncel gereksinimlerini teyit etmek kullanıcının sorumluluğundadır.",
+      },
+      contact: {
+        heading: "İletişim",
+        withEmail: "Sorularınız için {email} adresinden bize ulaşabilirsiniz.",
+        beforeLink: "Sorularınız için ",
+        linkText: "iletişim sayfasındaki",
+        afterLink: " kanallardan bize ulaşabilirsiniz.",
+      },
+    },
   },
   nav: {
     home: "Ana Sayfa",
@@ -30,12 +155,15 @@ export const tr: Dictionary = {
         "Nereden başlayacağını biliyor olabilirsin, henüz hiçbir şey bilmiyor da olabilirsin. Mevcut durumunu birlikte değerlendiriyor, sana uygun yolu beraber planlıyoruz.",
       ctaPrimary: "Yolculuğunu Konuşalım",
       ctaSecondary: "Nasıl Yardımcı Olduğumuzu Anlat",
+      imageAlt: "Berlin Hauptbahnhof, Almanya'ya varışın ilk durağı",
     },
     journey: {
       eyebrow: "Yolculuk",
       title: "Nerede olursan ol, Almanya'ya giden yolu birlikte çizelim.",
       description:
         "Türkiye'nin neresinde olursan ol, Berlin, München, Hamburg ya da Frankfurt — hedefin hangisi olursa olsun bulunduğun yerden başlayabiliriz. Bu rota tek bir uçuş değil, birçok küçük kararın toplamı.",
+      mapOrigin: "Türkiye",
+      mapDestination: "Almanya",
     },
     stageSelector: {
       title: "Şu anda nerede olursan ol.",
@@ -131,6 +259,8 @@ export const tr: Dictionary = {
       description:
         "Mentorlarımız bu süreci sadece anlatmıyor, akademik, bürokratik ve günlük hayatla ilgili tarafını da biliyor. Görevleri başvuru yapmak değil, doğru kararı vermeni kolaylaştırmak.",
       cta: "Mentorluğu Keşfet",
+      approachEyebrow: "Yaklaşımımız",
+      approachQuote: "Görevleri başvuru yapmak değil, doğru kararı vermeni kolaylaştırmak.",
     },
     visualStory: {
       eyebrow: "Günlük Hayat",
@@ -154,6 +284,7 @@ export const tr: Dictionary = {
       cta: "Tüm Soruları Gör",
     },
     finalCta: {
+      eyebrow: "Nereden Olursan Ol · Almanya",
       title: "Hazırsan konuşalım.",
       description:
         "Bulunduğun yerden başlayalım. Durumunu birlikte anlayalım, sonrasında sana uygun yolu birlikte çizelim.",
@@ -257,6 +388,13 @@ export const tr: Dictionary = {
         nextStep: "Mentorluğun sana nasıl uyabileceğini konuşalım.",
       },
     ],
+    labels: {
+      problem: "Problem",
+      help: "Nasıl yardımcı oluyoruz",
+      forWhom: "Kimler için",
+      process: "Süreç",
+      scope: "Kapsam",
+    },
   },
   mentorship: {
     title: "Mentor burada sadece başvuru yapan kişi değil.",
@@ -295,6 +433,8 @@ export const tr: Dictionary = {
   },
   about: {
     title: "Hakkımızda",
+    imageSrc: "/images/cities/cologne.jpg",
+    imageAlt: "Köln, Almanya",
     intro:
       "Bu sürecin nasıl hissettirdiğini bilen insanlar tarafından oluşturulan bir sistemiz.",
     sections: [
@@ -373,6 +513,10 @@ export const tr: Dictionary = {
     comparisonNote: "Her kapsamın hangi hizmetleri içerdiğini aşağıda görebilirsin. Detaylar için ilgili hizmeti incele.",
     honestyNote:
       "Burada net bir sayı görmemenin nedeni gizlilik değil, dürüstlük: ihtiyacın netleşmeden bir rakam vermek gerçekçi olmazdı. Görüşmede konuştuğumuz kapsam dışında sürpriz bir ücretle karşılaşmazsın.",
+    included: "Bu kapsamda",
+    tableService: "Hizmet",
+    tableFee: "Ücret",
+    includedAria: "Dahil",
     cta: {
       title: "Hangi kapsamın sana uygun olduğunu birlikte konuşalım.",
       description: "Karar vermiş olman gerekmiyor. Durumunu anlat, uygun kapsamı birlikte bulalım.",
@@ -451,9 +595,12 @@ export const tr: Dictionary = {
       description: "Birkaç kısa soruyla seni tanıyalım, sana uygun bir görüşme hazırlayalım.",
       cta: "Yolculuğunu Konuşalım",
     },
+    photoCaption: "Bir görüşme başlıyor",
+    photoAlt: "Frankfurt, Almanya",
   },
   bizeKatilin: {
     eyebrow: "Bize Katılın",
+    applyEyebrow: "Başvuru",
     title: "Bir zamanlar sen de nereden başlayacağını bilmiyordun.",
     intro: "Almanya'da eğitim deneyimin varsa ve bu yolda birine yol arkadaşı olmak istiyorsan, seni dinlemek isteriz.",
     imageCaption: "Deneyimini paylaş",
@@ -498,6 +645,9 @@ export const tr: Dictionary = {
     error: { description: "Formu gönderirken bir sorun oluştu. Lütfen tekrar dene." },
   },
   assessment: {
+    contactValidation: "Lütfen ad, soyad, telefon, e-posta ve tercih ettiğin iletişim yöntemini doldur.",
+    metaTitle: "Seni Biraz Tanıyalım",
+    metaDescription: "Birkaç kısa soruyla mevcut durumunu anlayalım, sana uygun bir görüşme hazırlayalım.",
     intro: {
       eyebrow: "Kişisel Yol Haritası",
       title: "Seni biraz tanıyalım.",
@@ -676,9 +826,9 @@ export const tr: Dictionary = {
     navTitle: "Sayfalar",
     legalTitle: "Yasal",
     legalLinks: [
-      { label: "Gizlilik Politikası", href: "/gizlilik" },
-      { label: "KVKK Aydınlatma Metni", href: "/kvkk" },
-      { label: "Kullanım Şartları", href: "/kullanim-sartlari" },
+      { label: "Gizlilik Politikası", route: "privacy" },
+      { label: "KVKK Aydınlatma Metni", route: "kvkk" },
+      { label: "Kullanım Şartları", route: "terms" },
     ],
     rights: `© ${new Date().getFullYear()} ${siteConfig.name}. Tüm hakları saklıdır.`,
   },

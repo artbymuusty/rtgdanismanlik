@@ -42,7 +42,7 @@ function routePath(from: { x: number; y: number }, to: { x: number; y: number })
   return `M ${from.x} ${from.y} Q ${midX} ${midY} ${to.x} ${to.y}`;
 }
 
-export function WorldMap() {
+export function WorldMap({ originLabel, destinationLabel }: { originLabel: string; destinationLabel: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const inView = useInView(containerRef, { once: true, amount: 0.4 });
   const reduceMotion = useReducedMotion();
@@ -150,7 +150,7 @@ export function WorldMap() {
           top: `${(Math.min(...originPoints.map((o) => o.y)) / height) * 100 - 3}%`,
         }}
       >
-        Türkiye
+        {originLabel}
       </span>
       <span
         className="pointer-events-none absolute -translate-x-1/2 translate-y-2 rounded-full border border-line bg-paper/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-ink"
@@ -159,7 +159,7 @@ export function WorldMap() {
           top: `${(Math.min(...destinations.map((d) => d.y)) / height) * 100}%`,
         }}
       >
-        Almanya
+        {destinationLabel}
       </span>
     </div>
   );

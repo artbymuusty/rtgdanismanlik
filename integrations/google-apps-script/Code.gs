@@ -12,14 +12,19 @@
  *
  * ARCHITECTURE — raw form data vs. CRM state, kept in separate sheets:
  *
- *   LEADS_RAW  — append-only. Exactly what the website submitted. Never
- *                edited by staff, never overwritten by this script after
- *                the first write.
- *   LEADS_CRM  — one row per lead (same ID as LEADS_RAW), created once at
- *                submission time with CRM fields defaulted to empty /
+ *   LEADS_CRM  — the ONLY sheet written when the website form is
+ *                submitted: one row per lead, created once at submission
+ *                time with CRM fields defaulted to empty /
  *                "İlk görüşme yapılmadı". Staff edits THIS sheet by hand
  *                (Sorumlu, Durum, Notlar, İlk Görüşme Tarihi, Mentor ID,
  *                Drive Folder) — those edits never touch LEADS_RAW.
+ *   LEADS_RAW  — NOT written at submission. A lead's RAW row is created
+ *                exactly once, by snapshotLeadProfileToRaw(), when its CRM
+ *                Durum first goes STATUS_NOT_MET -> STATUS_MET: a snapshot
+ *                of the CRM profile, using the CRM row's own ID as the RAW
+ *                ID. After that RAW and CRM are fully independent (no
+ *                automatic sync in either direction), and an existing RAW
+ *                row for that ID is never rewritten or duplicated.
  *   TEAM       — single column of staff names, manually maintained. Not
  *                written by this script; only referenced by a Data
  *                Validation rule on LEADS_CRM's "Sorumlu" column (set up
@@ -61,20 +66,19 @@ var LEADS_CRM_SHEET_NAME = "LEADS_CRM";
 var TEAM_SHEET_NAME = "TEAM";
 var MENTOR_SHEET_NAME = "MENTOR_APPLICATIONS";
 
-// LEADS_RAW: form + system data at submission time, PLUS (from columns
-// 21-22 on) the lead's independent post-first-meeting profile. No CRM
+// LEADS_RAW: one row per lead, created at the first-meeting transition as a
+// snapshot of the CRM profile (see snapshotLeadProfileToRaw()). No CRM
 // MANAGEMENT field (Sorumlu/Durum/İlk Görüşme Tarihi/Mentor ID/Drive
 // Folder) ever belongs here — those stay CRM-only.
 //
 //   "Notlar"                  — the lead's own long-lived tracking notes
 //                                (staff-edited, independent from
 //                                LEADS_CRM's own "Notlar" — never synced).
-//   "Profil Snapshot Tarihi"  — set exactly once, by the one-time CRM ->
-//                                RAW profile snapshot that fires when
-//                                Durum first reaches STATUS_MET (see
-//                                snapshotLeadProfileToRaw()). Empty means
-//                                "no first meeting yet"; once set, never
-//                                changed again by any automation.
+//   "Profil Snapshot Tarihi"  — stamped when the RAW row is created by the
+//                                CRM -> RAW snapshot (Durum first reaches
+//                                STATUS_MET); never changed again by any
+//                                automation. Legacy rows that were written
+//                                at submission time may have it empty.
 var LEADS_RAW_COLUMNS = [
   "ID", "Created At",
   "Ad", "Soyad", "Email", "Telefon", "Tercih Edilen İletişim",
@@ -127,6 +131,16 @@ function doPost(e) {
   try {
     result = handleRequest(e);
   } catch (err) {
+    // The client only ever sees the generic "internal_error" code below —
+    // never err.message/err.stack, which could in principle echo back
+    // something derived from the request. Full detail goes ONLY to the
+    // Apps Script Execution log (Logger.log), visible solely to whoever
+    // has access to this script project, never to the website or its
+    // visitors. Never logs body/payload/secret — just the exception's own
+    // name/message/stack, which describe the CODE fault, not user data.
+    Logger.log("[RTG doPost] EXCEPTION name: " + (err && err.name));
+    Logger.log("[RTG doPost] EXCEPTION message: " + (err && err.message));
+    Logger.log("[RTG doPost] EXCEPTION stack: " + (err && err.stack));
     result = { ok: false, error: "internal_error" };
   }
   return ContentService
@@ -136,6 +150,7 @@ function doPost(e) {
 
 function handleRequest(e) {
   if (!e || !e.postData || !e.postData.contents) {
+    Logger.log("[RTG handleRequest] rejected: invalid_request");
     return { ok: false, error: "invalid_request" };
   }
 
@@ -143,15 +158,30 @@ function handleRequest(e) {
   try {
     body = JSON.parse(e.postData.contents);
   } catch (err) {
+    Logger.log("[RTG handleRequest] rejected: invalid_json");
+    return { ok: false, error: "invalid_json" };
+  }
+  if (!body || typeof body !== "object") {
+    Logger.log("[RTG handleRequest] rejected: invalid_json (body is not an object)");
     return { ok: false, error: "invalid_json" };
   }
 
+  // Never logs the secret itself (expected or received) — only whether
+  // each side had one at all, which is enough to tell a genuinely missing
+  // Script Property apart from a value mismatch, without exposing either
+  // value in a log any script-project collaborator could read.
   var expectedSecret = PropertiesService.getScriptProperties().getProperty("API_SECRET");
   if (!expectedSecret || body.secret !== expectedSecret) {
+    Logger.log(
+      "[RTG handleRequest] rejected: unauthorized (API_SECRET " +
+      (expectedSecret ? "is set" : "is MISSING") + " in Script Properties; request " +
+      (body.secret ? "sent a secret" : "sent NO secret") + ")"
+    );
     return { ok: false, error: "unauthorized" };
   }
 
   if (!body.submissionId || typeof body.submissionId !== "string") {
+    Logger.log("[RTG handleRequest] rejected: missing_submission_id");
     return { ok: false, error: "missing_submission_id" };
   }
 
@@ -161,6 +191,9 @@ function handleRequest(e) {
   if (body.type === "mentor_application") {
     return writeMentorApplication(body);
   }
+  // Only the JS type of the value — never the value itself, which is
+  // client-controlled input.
+  Logger.log("[RTG handleRequest] rejected: unknown_type (typeof type = " + typeof body.type + ")");
   return { ok: false, error: "unknown_type" };
 }
 
@@ -184,20 +217,26 @@ function writeLead(body) {
     "firstName", "lastName", "phone", "email", "preferredContact", "referralSource"
   ];
   for (var i = 0; i < required.length; i++) {
-    if (!payload[required[i]]) return { ok: false, error: "missing_field:" + required[i] };
+    if (!payload[required[i]]) {
+      Logger.log("[RTG writeLead] rejected: missing_field:" + required[i]);
+      return { ok: false, error: "missing_field:" + required[i] };
+    }
   }
 
   if (payload.referralSource === "other" && !payload.referralSourceOther) {
+    Logger.log("[RTG writeLead] rejected: missing_field:referralSourceOther");
     return { ok: false, error: "missing_field:referralSourceOther" };
   }
 
-  var rawSheet = getSheet(LEADS_RAW_SHEET_NAME, LEADS_RAW_COLUMNS);
+  // LEADS_RAW is deliberately NOT touched at submission time (see the
+  // architecture note at the top) — only LEADS_CRM's header is checked.
   var crmSheet = getSheet(LEADS_CRM_SHEET_NAME, LEADS_CRM_COLUMNS);
 
-  if (!validateSheetHeaders(rawSheet, LEADS_RAW_COLUMNS)) {
-    return { ok: false, error: "sheet_header_mismatch:" + LEADS_RAW_SHEET_NAME };
-  }
-  if (!validateSheetHeaders(crmSheet, LEADS_CRM_COLUMNS)) {
+  // On a mismatch, ensureSheetHeaders() logs sheet name + column number +
+  // expected + found header for every differing column — header TITLES
+  // only (never row data) — and, only when the sheet has no data rows,
+  // repairs the header in place (see its doc comment).
+  if (!ensureSheetHeaders(crmSheet, LEADS_CRM_SHEET_NAME, LEADS_CRM_COLUMNS)) {
     return { ok: false, error: "sheet_header_mismatch:" + LEADS_CRM_SHEET_NAME };
   }
 
@@ -213,46 +252,122 @@ function writeLead(body) {
     referralLabel
   ];
 
-  var existingId = findBySubmissionId(rawSheet, body.submissionId);
+  // Fail before writing anything if this file's own row builder ever drifts
+  // from the 23-column LEADS_CRM schema (2 + common + 6 CRM defaults).
+  if (2 + commonFields.length + 6 !== LEADS_CRM_COLUMNS.length) {
+    throw new Error("row_builder_schema_mismatch: commonFields has " + commonFields.length + " cells");
+  }
+
+  // Idempotency. LEADS_CRM has no "Submission ID" column, so a retry is
+  // recognized two ways: (1) LEADS_RAW's "Submission ID" — leads submitted
+  // before this behavior change, and leads already snapshotted to RAW; (2)
+  // the submissionId -> ID entry saved in Script Properties when the CRM
+  // row was created (see saveLeadMeta()).
+  var existingId = findExistingLeadId(body.submissionId);
   if (existingId) {
-    // Idempotent retry — never append to LEADS_RAW again. Self-heals the
-    // rare case where a prior call wrote LEADS_RAW but failed before
-    // reaching LEADS_CRM (e.g. a transient Sheets error): if the CRM row
-    // is missing, create it now with fresh defaults; if it already
-    // exists, it is never touched or re-created.
+    // Never creates a second CRM row for a known lead. Self-heals only the
+    // rare case where the ID is known but its CRM row is missing (a prior
+    // call failed midway); an existing CRM row is never touched.
     if (!rowExistsById(crmSheet, existingId)) {
       appendCrmRow(crmSheet, existingId, body.submittedAt || new Date().toISOString(), commonFields);
+      Logger.log("[RTG writeLead] idempotent retry: LEADS_CRM row was missing, created it (id=" + existingId + ")");
+    } else {
+      Logger.log("[RTG writeLead] idempotent retry: nothing written (id=" + existingId + ")");
     }
     return { ok: true, id: existingId };
   }
 
   var id = generateId("L", body.submissionId);
+  // LEADS_CRM's ID is now the lead's only key, so it must be unique: on the
+  // (~1 in 16 million per same-second pair) chance two submissions share
+  // timestamp + 6-char prefix, disambiguate with the next characters.
+  if (rowExistsById(crmSheet, id)) {
+    id += "-" + String(body.submissionId).replace(/-/g, "").slice(6, 12).toUpperCase();
+  }
   var submittedAt = body.submittedAt || new Date().toISOString();
   var kaynakDetayi = payload.referralSource === "other" ? (payload.referralSourceOther || "") : "";
 
-  rawSheet.appendRow(
-    [id, submittedAt].concat(commonFields).concat([
-      kaynakDetayi, body.source || "rtg-website", body.submissionId,
-      "", "" // Notlar, Profil Snapshot Tarihi — both start empty
-    ])
-  );
+  appendCrmRow(crmSheet, id, submittedAt, commonFields);
 
-  if (!rowExistsById(crmSheet, id)) {
-    appendCrmRow(crmSheet, id, submittedAt, commonFields);
+  // The CRM row is already saved; a failure here only loses idempotency
+  // for a retry and the RAW-only fields (Kaynak Detayı/Source/Submission
+  // ID), which would then be blank in the eventual RAW snapshot. Never
+  // fail a submission that has already been written for this.
+  try {
+    saveLeadMeta(id, body.submissionId, kaynakDetayi, body.source || "rtg-website");
+  } catch (err) {
+    Logger.log("[RTG writeLead] WARNING: lead saved to LEADS_CRM but saveLeadMeta failed: " + (err && err.message));
   }
 
+  Logger.log("[RTG writeLead] ok: 1 row written to " + LEADS_CRM_SHEET_NAME + ", " + LEADS_RAW_SHEET_NAME + " untouched (id=" + id + ")");
   return { ok: true, id: id };
+}
+
+// Script Properties entries bridging submission time and the first-meeting
+// snapshot, because LEADS_CRM has no column for them:
+//   RTG_LEAD_META_<id>  -> JSON { s: submissionId, k: Kaynak Detayı, o: Source }
+//   RTG_LEAD_SUB_<sid>  -> <id>   (submission-time idempotency lookup)
+// Both are deleted when the RAW row is created (RAW then carries Submission
+// ID itself). Holds no secret; Kaynak Detayı is user free text, never logged.
+var LEAD_META_PREFIX = "RTG_LEAD_META_";
+var LEAD_SUB_PREFIX = "RTG_LEAD_SUB_";
+
+function saveLeadMeta(id, submissionId, kaynakDetayi, source) {
+  var entries = {};
+  entries[LEAD_META_PREFIX + id] = JSON.stringify({ s: submissionId, k: kaynakDetayi, o: source });
+  entries[LEAD_SUB_PREFIX + submissionId] = id;
+  PropertiesService.getScriptProperties().setProperties(entries);
+}
+
+function readLeadMeta(id) {
+  try {
+    var raw = PropertiesService.getScriptProperties().getProperty(LEAD_META_PREFIX + id);
+    return raw ? JSON.parse(raw) : {};
+  } catch (err) {
+    return {};
+  }
+}
+
+function clearLeadMeta(id, meta) {
+  var props = PropertiesService.getScriptProperties();
+  props.deleteProperty(LEAD_META_PREFIX + id);
+  if (meta && meta.s) props.deleteProperty(LEAD_SUB_PREFIX + meta.s);
+}
+
+/** ID of the lead already recorded for this submissionId, or null. Checks
+ * LEADS_RAW (read-only — never creates the sheet) then the Script
+ * Properties entry saved at CRM-row creation. */
+function findExistingLeadId(submissionId) {
+  var spreadsheetId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+  var rawSheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName(LEADS_RAW_SHEET_NAME);
+  if (rawSheet) {
+    var rawId = findBySubmissionId(rawSheet, submissionId);
+    if (rawId) return rawId;
+  }
+  return PropertiesService.getScriptProperties().getProperty(LEAD_SUB_PREFIX + submissionId) || null;
 }
 
 /** Appends one new LEADS_CRM row with all CRM-only fields at their
  * defaults — Sorumlu/İlk Görüşme Tarihi/Notlar/Mentor ID/Drive Folder
  * empty, Durum = STATUS_NOT_MET. Column order matches LEADS_CRM_COLUMNS
  * exactly (23 columns: id, submittedAt, 15 commonFields, then 6 CRM
- * defaults). */
+ * defaults). Verified after the write (cell count before, lookup by ID after). */
 function appendCrmRow(crmSheet, id, submittedAt, commonFields) {
-  crmSheet.appendRow(
+  appendVerifiedRow(
+    crmSheet, LEADS_CRM_SHEET_NAME, LEADS_CRM_COLUMNS.length, id,
     [id, submittedAt].concat(commonFields).concat(["", STATUS_NOT_MET, "", "", "", ""])
   );
+}
+
+function appendVerifiedRow(sheet, sheetName, expectedCells, id, row) {
+  if (row.length !== expectedCells) {
+    throw new Error("row_width_mismatch:" + sheetName + " built " + row.length + " cells, expected " + expectedCells);
+  }
+  sheet.appendRow(row);
+  SpreadsheetApp.flush();
+  if (!rowExistsById(sheet, id)) {
+    throw new Error("append_not_verified:" + sheetName + " row for id " + id + " not found after appendRow");
+  }
 }
 
 function writeMentorApplication(body) {
@@ -404,8 +519,8 @@ function setupRTGCRM() {
  */
 function applyLeadsCrmValidation(crmSheet, teamSheet) {
   var headers = crmSheet.getRange(1, 1, 1, crmSheet.getLastColumn()).getValues()[0];
-  var sorumluCol = headers.indexOf("Sorumlu") + 1;
-  var durumCol = headers.indexOf("Durum") + 1;
+  var sorumluCol = headerIndex(headers, "Sorumlu") + 1;
+  var durumCol = headerIndex(headers, "Durum") + 1;
   var maxDataRows = 1000;
 
   if (sorumluCol > 0) {
@@ -446,14 +561,94 @@ function getSheet(name, columns) {
  * headers) always passes. Only matters for catching drift on a sheet
  * that already existed with a different/stale header row — writeLead()
  * returns a clear error instead of silently misaligning columns.
+ *
+ * Both the actual AND the expected header cell are trimmed before
+ * comparing. A hand-typed header (e.g. after manually completing a schema
+ * migration in the Sheets UI) can easily pick up a stray leading/trailing
+ * space that is invisible in the UI but fails a raw `!==` — that's noise
+ * this check should not be sensitive to. A genuinely different column
+ * name (typo, wrong Turkish character, wrong order) still fails, which is
+ * the actual purpose of this guard.
  */
 function validateSheetHeaders(sheet, expectedColumns) {
-  if (sheet.getLastColumn() < expectedColumns.length) return false;
-  var actual = sheet.getRange(1, 1, 1, expectedColumns.length).getValues()[0];
+  return findHeaderMismatches(sheet, expectedColumns).length === 0;
+}
+
+/** Every column (1-based) whose trimmed header differs from the trimmed
+ * expected one, as { col, expected, found }. A sheet with fewer columns
+ * than expected reports the missing ones with found = "" . Header TITLES
+ * only — never reads a data row. */
+function findHeaderMismatches(sheet, expectedColumns) {
+  var lastCol = sheet.getLastColumn();
+  var actual = lastCol < 1 ? [] : sheet.getRange(1, 1, 1, Math.min(lastCol, expectedColumns.length)).getValues()[0];
+  var mismatches = [];
   for (var i = 0; i < expectedColumns.length; i++) {
-    if (actual[i] !== expectedColumns[i]) return false;
+    var found = i < actual.length ? String(actual[i]) : "";
+    if (found.trim() !== String(expectedColumns[i]).trim()) {
+      mismatches.push({ col: i + 1, expected: expectedColumns[i], found: found });
+    }
   }
+  return mismatches;
+}
+
+/**
+ * Header guard used by writeLead() (LEADS_CRM) and the CRM -> RAW snapshot
+ * (LEADS_RAW). Returns true when the sheet's header
+ * row is (after trim) the expected schema.
+ *
+ * On a mismatch it always logs, per differing column: sheet name, column
+ * number, expected header, found header (JSON-quoted so invisible
+ * whitespace is visible) — titles only, no user data.
+ *
+ * Then, ONLY if the sheet holds no data rows at all (getLastRow() <= 1,
+ * i.e. header-only or empty), it repairs the header: it rewrites row 1,
+ * columns 1..N, with the expected titles and re-validates. That is the
+ * whole repair — it never clears the sheet, never deletes/inserts/reorders
+ * columns, never touches columns beyond N, and never runs when any data
+ * row exists (a sheet with data is only ever reported, returning false),
+ * so Filter Views, data validation and existing rows are unaffected.
+ */
+function ensureSheetHeaders(sheet, sheetName, expectedColumns) {
+  var mismatches = findHeaderMismatches(sheet, expectedColumns);
+  if (mismatches.length === 0) return true;
+
+  Logger.log(
+    "[RTG headers] sheet_header_mismatch:" + sheetName + " — " + mismatches.length +
+    " column(s) differ (sheet has " + sheet.getLastColumn() + " column(s), expected " + expectedColumns.length + ")"
+  );
+  for (var i = 0; i < mismatches.length; i++) {
+    Logger.log(
+      "[RTG headers] sheet_header_mismatch:" + sheetName + " column " + mismatches[i].col +
+      ": expected " + JSON.stringify(mismatches[i].expected) +
+      ", found " + JSON.stringify(mismatches[i].found)
+    );
+  }
+
+  if (sheet.getLastRow() > 1) {
+    Logger.log("[RTG headers] sheet_header_mismatch:" + sheetName + " — sheet has data rows, header NOT repaired");
+    return false;
+  }
+
+  sheet.getRange(1, 1, 1, expectedColumns.length).setValues([expectedColumns]);
+  SpreadsheetApp.flush();
+  if (findHeaderMismatches(sheet, expectedColumns).length !== 0) {
+    Logger.log("[RTG headers] sheet_header_mismatch:" + sheetName + " — header repair did not take effect");
+    return false;
+  }
+  Logger.log("[RTG headers] sheet_header_mismatch:" + sheetName + " — sheet had no data rows, header repaired to the expected " + expectedColumns.length + "-column schema");
   return true;
+}
+
+/** 0-based index of the header cell whose TRIMMED text equals `name`, or -1.
+ * Every by-name column lookup goes through this so it agrees with
+ * validateSheetHeaders(), which tolerates stray leading/trailing spaces —
+ * otherwise a header that passes validation (e.g. "Submission ID ") could
+ * still be invisible to idempotency / snapshot lookups. */
+function headerIndex(headers, name) {
+  for (var i = 0; i < headers.length; i++) {
+    if (String(headers[i]).trim() === name) return i;
+  }
+  return -1;
 }
 
 /**
@@ -468,8 +663,8 @@ function findBySubmissionId(sheet, submissionId) {
   if (lastRow < 2) return null;
 
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  var idCol = headers.indexOf("ID") + 1;
-  var subCol = headers.indexOf("Submission ID") + 1;
+  var idCol = headerIndex(headers, "ID") + 1;
+  var subCol = headerIndex(headers, "Submission ID") + 1;
   if (subCol < 1) return null;
 
   var values = sheet.getRange(2, subCol, lastRow - 1, 1).getValues();
@@ -498,7 +693,7 @@ function findRowIndexById(sheet, id) {
   if (lastRow < 2) return 0;
 
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  var idCol = headers.indexOf("ID") + 1;
+  var idCol = headerIndex(headers, "ID") + 1;
   if (idCol < 1) return 0;
 
   var values = sheet.getRange(2, idCol, lastRow - 1, 1).getValues();
@@ -554,8 +749,8 @@ function handleLeadsCrmStatusEdit(e) {
   if (row < 2) return; // header row, ignore
 
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  var statusCol = headers.indexOf("Durum") + 1;
-  var firstMeetingCol = headers.indexOf("İlk Görüşme Tarihi") + 1;
+  var statusCol = headerIndex(headers, "Durum") + 1;
+  var firstMeetingCol = headerIndex(headers, "İlk Görüşme Tarihi") + 1;
   if (statusCol < 1 || firstMeetingCol < 1) return;
   if (e.range.getColumn() !== statusCol) return;
 
@@ -565,20 +760,26 @@ function handleLeadsCrmStatusEdit(e) {
   var alreadyMet = firstMeetingValue !== "" && firstMeetingValue !== null;
 
   if (newValue === STATUS_MET) {
+    var tz = e.source.getSpreadsheetTimeZone();
     if (!alreadyMet) {
-      var tz = e.source.getSpreadsheetTimeZone();
       firstMeetingCell.setValue(Utilities.formatDate(new Date(), tz, "dd.MM.yyyy HH:mm"));
+    }
 
-      // One-time CRM -> RAW profile snapshot. Gated on !alreadyMet so a
-      // later re-selection of STATUS_MET (CRM's own timestamp already
-      // set) never re-enters this branch at all — snapshotLeadProfileToRaw()
-      // also re-checks RAW's own marker independently, so this stays safe
-      // even if something ever calls it a second time some other way.
-      var idCol = headers.indexOf("ID") + 1;
-      var leadId = idCol > 0 ? sheet.getRange(row, idCol).getValue() : null;
-      var rawSheet = e.source.getSheetByName(LEADS_RAW_SHEET_NAME);
-      if (leadId && rawSheet) {
+    // Creates the lead's LEADS_RAW row if — and only if — none exists for
+    // this ID yet. Runs on every transition to STATUS_MET (not just the one
+    // that stamped the date) so a first attempt that failed can be retried
+    // by re-selecting the status; snapshotLeadProfileToRaw() itself
+    // no-ops when a RAW row for the ID already exists, so re-triggering
+    // never duplicates or re-snapshots.
+    var idCol = headerIndex(headers, "ID") + 1;
+    var leadId = idCol > 0 ? sheet.getRange(row, idCol).getValue() : null;
+    var rawSheet = e.source.getSheetByName(LEADS_RAW_SHEET_NAME);
+    if (leadId && rawSheet) {
+      try {
         snapshotLeadProfileToRaw(sheet, rawSheet, leadId, tz);
+      } catch (err) {
+        Logger.log("[RTG onEdit] snapshot failed: " + (err && err.name) + ": " + (err && err.message));
+        e.source.toast("LEADS_RAW kaydı oluşturulamadı — Apps Script Executions logunu kontrol et.", "RTG CRM", 8);
       }
     }
     return;
@@ -591,78 +792,83 @@ function handleLeadsCrmStatusEdit(e) {
 }
 
 /**
- * The ONLY automatic transfer of data between LEADS_CRM and LEADS_RAW,
- * and it only ever runs once per lead: fires from handleLeadsCrmStatusEdit()
- * exactly when Durum first reaches STATUS_MET. Copies the lead's current
- * CRM profile fields into the matching LEADS_RAW row (matched by "ID"
- * only — never name/email/row position) and stamps
- * "Profil Snapshot Tarihi". After that, RAW and CRM are fully
- * independent: no CRM edit ever touches RAW again, and no RAW edit ever
- * touches CRM (RAW edits aren't even observed — onEdit only reacts to
- * LEADS_CRM in the first place).
+ * The ONLY automatic transfer of data between LEADS_CRM and LEADS_RAW, and
+ * it happens at most once per lead: it CREATES the lead's LEADS_RAW row,
+ * as a snapshot of the current CRM profile, the first time Durum reaches
+ * STATUS_MET. Matched by "ID" only (never name/email/row position); the
+ * new RAW row's ID is the CRM row's own ID.
  *
- * Idempotent by its own check (not just the caller's !alreadyMet gate):
- * if the RAW row already has a "Profil Snapshot Tarihi" value, this
- * returns immediately without writing anything — a lead's RAW profile,
- * once snapshotted, can only change through a direct manual edit on
- * LEADS_RAW from then on.
+ * If a RAW row with this ID already exists — a legacy lead written at
+ * submission time, or a prior snapshot — this returns without writing
+ * anything: no second row, no re-snapshot, no overwrite. After creation
+ * RAW and CRM are fully independent: no CRM edit ever touches RAW, and no
+ * RAW edit ever touches CRM (onEdit only reacts to LEADS_CRM).
+ *
+ * The RAW row carries the 15 shared profile fields + Başvuru Tarihi (as
+ * Created At) from CRM, Kaynak Detayı/Source/Submission ID from the Script
+ * Properties entry saved at submission, an empty "Notlar" (RAW's own notes
+ * are independent of CRM's), and "Profil Snapshot Tarihi" = now. CRM
+ * management fields (Sorumlu, Durum, İlk Görüşme Tarihi, Mentor ID, Drive
+ * Folder) are never copied.
+ *
+ * Returns true only when it created the row.
  */
 function snapshotLeadProfileToRaw(crmSheet, rawSheet, id, tz) {
-  var rawHeaders = rawSheet.getRange(1, 1, 1, rawSheet.getLastColumn()).getValues()[0];
-  var rawIdCol = rawHeaders.indexOf("ID") + 1;
-  var snapshotCol = rawHeaders.indexOf("Profil Snapshot Tarihi") + 1;
-  if (rawIdCol < 1 || snapshotCol < 1) return; // RAW not on the expected schema — do nothing rather than guess
+  // Only a RAW sheet on the expected schema is written to (header-only
+  // sheets are repaired, sheets with data are never touched). If it is
+  // not, do nothing rather than guess — and, because the "already exists"
+  // lookup below is by header name, never risk a duplicate.
+  if (!ensureSheetHeaders(rawSheet, LEADS_RAW_SHEET_NAME, LEADS_RAW_COLUMNS)) {
+    Logger.log("[RTG snapshot] skipped: " + LEADS_RAW_SHEET_NAME + " header mismatch (see log above)");
+    return false;
+  }
 
-  var rawRow = findRowIndexById(rawSheet, id);
-  if (rawRow > 0) {
-    var existingSnapshot = rawSheet.getRange(rawRow, snapshotCol).getValue();
-    if (existingSnapshot !== "" && existingSnapshot !== null) return; // already snapshotted — never touch again
+  if (findRowIndexById(rawSheet, id) > 0) {
+    Logger.log("[RTG snapshot] skipped: " + LEADS_RAW_SHEET_NAME + " already has a row for id=" + id);
+    return false;
   }
 
   var crmRow = findRowIndexById(crmSheet, id);
-  if (crmRow < 1) return; // nothing to copy from
+  if (crmRow < 1) return false; // nothing to copy from
 
   var crmHeaders = crmSheet.getRange(1, 1, 1, crmSheet.getLastColumn()).getValues()[0];
   var crmValues = crmSheet.getRange(crmRow, 1, 1, crmSheet.getLastColumn()).getValues()[0];
   function crmValue(columnName) {
-    var idx = crmHeaders.indexOf(columnName);
+    var idx = headerIndex(crmHeaders, columnName);
     return idx < 0 ? "" : crmValues[idx];
   }
 
-  // The lead-profile fields LEADS_CRM and LEADS_RAW have in common —
-  // deliberately excludes every CRM-management column (Sorumlu, Durum,
-  // İlk Görüşme Tarihi, Notlar, Mentor ID, Drive Folder) and every
-  // RAW-only column (Kaynak Detayı, Source, Submission ID, Notlar,
-  // Profil Snapshot Tarihi).
   var profileFields = [
     "Ad", "Soyad", "Email", "Telefon", "Tercih Edilen İletişim",
     "Aşama", "Eğitim Durumu", "İlgi Alanı", "İngilizce Seviyesi", "Almanca Seviyesi",
     "Almanya Hedefi", "Zaman Çizelgesi", "Hakkında / Deneyim", "Mesaj", "Bizi Nereden Duydunuz"
   ];
+  var meta = readLeadMeta(id);
   var snapshotTimestamp = Utilities.formatDate(new Date(), tz, "dd.MM.yyyy HH:mm");
 
-  if (rawRow < 1) {
-    // Should not normally happen — writeLead() always creates the RAW row
-    // up front. Never silently drop the lead's profile: build a minimal
-    // RAW row from what CRM has. Kaynak Detayı/Source/Submission ID/Notlar
-    // are unknown here and stay blank; this is an already-abnormal
-    // recovery path, not the normal flow.
-    var newRow = [];
-    for (var i = 0; i < rawHeaders.length; i++) {
-      var col = rawHeaders[i];
-      if (col === "ID") newRow.push(id);
-      else if (col === "Created At") newRow.push(snapshotTimestamp);
-      else if (col === "Profil Snapshot Tarihi") newRow.push(snapshotTimestamp);
-      else if (profileFields.indexOf(col) !== -1) newRow.push(crmValue(col));
-      else newRow.push("");
-    }
-    rawSheet.appendRow(newRow);
-    return;
+  var newRow = [];
+  for (var i = 0; i < LEADS_RAW_COLUMNS.length; i++) {
+    var col = LEADS_RAW_COLUMNS[i];
+    if (col === "ID") newRow.push(id);
+    else if (col === "Created At") newRow.push(crmValue("Başvuru Tarihi"));
+    else if (col === "Kaynak Detayı") newRow.push(meta.k || "");
+    else if (col === "Source") newRow.push(meta.o || "rtg-website");
+    else if (col === "Submission ID") newRow.push(meta.s || "");
+    else if (col === "Notlar") newRow.push("");
+    else if (col === "Profil Snapshot Tarihi") newRow.push(snapshotTimestamp);
+    else if (profileFields.indexOf(col) !== -1) newRow.push(crmValue(col));
+    else newRow.push("");
   }
 
-  for (var j = 0; j < profileFields.length; j++) {
-    var rawCol = rawHeaders.indexOf(profileFields[j]) + 1;
-    if (rawCol > 0) rawSheet.getRange(rawRow, rawCol).setValue(crmValue(profileFields[j]));
+  appendVerifiedRow(rawSheet, LEADS_RAW_SHEET_NAME, LEADS_RAW_COLUMNS.length, id, newRow);
+
+  // RAW now carries Submission ID itself, which is what idempotency uses
+  // from here on — the bridging Script Properties entries are done.
+  try {
+    clearLeadMeta(id, meta);
+  } catch (err) {
+    Logger.log("[RTG snapshot] WARNING: could not clear lead meta: " + (err && err.message));
   }
-  rawSheet.getRange(rawRow, snapshotCol).setValue(snapshotTimestamp);
+  Logger.log("[RTG snapshot] created " + LEADS_RAW_SHEET_NAME + " row for id=" + id);
+  return true;
 }

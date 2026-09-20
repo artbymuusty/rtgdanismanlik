@@ -11,13 +11,15 @@ interface NavLinkItem {
 }
 
 export function MobileMenu({
-  primaryLinks,
-  moreLinks,
+  links,
   ctaLabel,
+  ctaHref,
+  labels,
 }: {
-  primaryLinks: NavLinkItem[];
-  moreLinks: NavLinkItem[];
+  links: NavLinkItem[];
   ctaLabel: string;
+  ctaHref: string;
+  labels: { open: string; close: string; buttonOpen: string; buttonClose: string; nav: string };
 }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,11 +57,11 @@ export function MobileMenu({
         ref={toggleRef}
         type="button"
         aria-expanded={open}
-        aria-label={open ? "Menüyü kapat" : "Menüyü aç"}
+        aria-label={open ? labels.close : labels.open}
         onClick={() => setOpen((v) => !v)}
         className="flex h-11 min-w-11 items-center justify-center gap-2 rounded-[3px] border border-line px-3 text-sm transition-all duration-150 hover:border-accent active:scale-[0.96] motion-reduce:active:scale-100"
       >
-        {open ? "Kapat" : "Menü"}
+        {open ? labels.buttonClose : labels.buttonOpen}
       </button>
 
       <div
@@ -68,20 +70,8 @@ export function MobileMenu({
           open ? "scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0",
         )}
       >
-        <nav className="flex flex-col p-2" aria-label="Mobil menü">
-          {primaryLinks.map((link) => (
-            <NavLink
-              key={link.href}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              underline={false}
-              className="rounded-[3px] px-3 py-2.5 hover:bg-paper-raised"
-            >
-              {link.label}
-            </NavLink>
-          ))}
-          {moreLinks.length > 0 ? <div className="my-1 border-t border-line" /> : null}
-          {moreLinks.map((link) => (
+        <nav className="flex flex-col p-2" aria-label={labels.nav}>
+          {links.map((link) => (
             <NavLink
               key={link.href}
               href={link.href}
@@ -94,7 +84,7 @@ export function MobileMenu({
           ))}
         </nav>
         <div className="p-2 pt-0">
-          <Button href="/basvuru" className="w-full !py-3">
+          <Button href={ctaHref} className="w-full !py-3">
             {ctaLabel}
           </Button>
         </div>

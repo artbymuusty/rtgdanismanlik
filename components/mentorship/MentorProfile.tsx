@@ -1,4 +1,4 @@
-import type { Mentor } from "@/lib/content/types";
+import type { Dictionary, Mentor } from "@/lib/content/types";
 import { EditorialPhoto } from "@/components/ui/EditorialPhoto";
 
 /**
@@ -6,7 +6,17 @@ import { EditorialPhoto } from "@/components/ui/EditorialPhoto";
  * "team card." Reuses the same photo/quote/meta language as
  * FeaturedStudentStory so mentors and students read as one visual system.
  */
-export function MentorProfile({ mentor, isDemo = false }: { mentor: Mentor; isDemo?: boolean }) {
+export function MentorProfile({
+  mentor,
+  isDemo = false,
+  labels,
+  sample,
+}: {
+  mentor: Mentor;
+  isDemo?: boolean;
+  labels: Dictionary["mentors"];
+  sample: string;
+}) {
   return (
     <article className="grid grid-cols-1 gap-8 sm:grid-cols-[0.7fr_1.3fr] sm:items-center sm:gap-10">
       <div className="relative">
@@ -18,7 +28,7 @@ export function MentorProfile({ mentor, isDemo = false }: { mentor: Mentor; isDe
         />
         {isDemo ? (
           <span className="absolute right-3 top-3 rounded-full border border-gold bg-paper/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-gold">
-            Örnek
+            {sample}
           </span>
         ) : null}
       </div>
@@ -35,15 +45,15 @@ export function MentorProfile({ mentor, isDemo = false }: { mentor: Mentor; isDe
 
         <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 border-t border-line pt-5">
           <div>
-            <dt className="font-mono text-xs uppercase tracking-[0.08em] text-muted">Almanya deneyimi</dt>
+            <dt className="font-mono text-xs uppercase tracking-[0.08em] text-muted">{labels.germanyExperience}</dt>
             <dd className="mt-1 text-sm text-ink">{mentor.germanyExperience}</dd>
           </div>
           <div>
-            <dt className="font-mono text-xs uppercase tracking-[0.08em] text-muted">Eğitim geçmişi</dt>
+            <dt className="font-mono text-xs uppercase tracking-[0.08em] text-muted">{labels.education}</dt>
             <dd className="mt-1 text-sm text-ink">{mentor.education}</dd>
           </div>
           <div>
-            <dt className="font-mono text-xs uppercase tracking-[0.08em] text-muted">Uzmanlık alanı</dt>
+            <dt className="font-mono text-xs uppercase tracking-[0.08em] text-muted">{labels.specialty}</dt>
             <dd className="mt-1 text-sm text-ink">{mentor.specialty}</dd>
           </div>
         </dl>

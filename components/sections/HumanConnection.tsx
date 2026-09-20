@@ -1,11 +1,13 @@
 import { getDictionary } from "@/lib/content";
+import type { Locale } from "@/lib/i18n/config";
+import { localizedPath } from "@/lib/i18n/routes";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { EditorialPhoto } from "@/components/ui/EditorialPhoto";
 import { Reveal } from "@/components/ui/Reveal";
 
-export function HumanConnection() {
-  const t = getDictionary().home.humanConnection;
+export function HumanConnection({ lang }: { lang: Locale }) {
+  const t = getDictionary(lang).home.humanConnection;
 
   return (
     <section className="border-b border-line py-16 sm:py-20">
@@ -29,7 +31,7 @@ export function HumanConnection() {
           </h2>
           <p className="mt-5 text-muted">{t.description}</p>
           <div className="mt-7">
-            <Button href="/basvuru">{t.cta}</Button>
+            <Button href={localizedPath(lang, "apply")}>{t.cta}</Button>
           </div>
         </Reveal>
       </Container>

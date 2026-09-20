@@ -5,7 +5,7 @@ import { siteConfig, type SocialLinks } from "@/lib/site-config";
  * actually configured — never fabricates a logo, phone number, or social
  * profile that doesn't exist yet.
  */
-export function getOrganizationJsonLd(social: SocialLinks, resolvedUrl: string) {
+export function getOrganizationJsonLd(social: SocialLinks, resolvedUrl: string, tagline: string) {
   // Demo-fallback URLs (see getSocialLinks) are real platform homepages, not
   // RTG's accounts — they must never enter search-engine-facing sameAs data.
   const sameAs = [
@@ -19,7 +19,7 @@ export function getOrganizationJsonLd(social: SocialLinks, resolvedUrl: string) 
     "@type": "Organization",
     name: siteConfig.name,
     url: resolvedUrl,
-    description: siteConfig.tagline,
+    description: tagline,
     ...(siteConfig.contactEmail ? { email: siteConfig.contactEmail } : {}),
     ...(sameAs.length > 0 ? { sameAs } : {}),
   };

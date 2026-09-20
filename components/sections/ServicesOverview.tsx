@@ -1,11 +1,13 @@
 import { getDictionary } from "@/lib/content";
+import type { Locale } from "@/lib/i18n/config";
+import { localizedPath } from "@/lib/i18n/routes";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
-export function ServicesOverview() {
-  const t = getDictionary();
+export function ServicesOverview({ lang }: { lang: Locale }) {
+  const t = getDictionary(lang);
   const { title, subtitle, cta } = t.home.services;
 
   return (
@@ -23,7 +25,7 @@ export function ServicesOverview() {
         </ul>
 
         <div className="mt-8">
-          <Button href="/nasil-yardimci-oluyoruz" variant="secondary">
+          <Button href={localizedPath(lang, "services")} variant="secondary">
             {cta}
           </Button>
         </div>

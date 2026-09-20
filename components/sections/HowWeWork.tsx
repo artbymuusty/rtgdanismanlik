@@ -1,9 +1,10 @@
 import { getDictionary } from "@/lib/content";
+import type { Locale } from "@/lib/i18n/config";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
-export function HowWeWork() {
-  const t = getDictionary().home.howWeWork;
+export function HowWeWork({ lang }: { lang: Locale }) {
+  const t = getDictionary(lang).home.howWeWork;
 
   return (
     <section className="border-b border-line bg-paper-raised py-16 sm:py-20">

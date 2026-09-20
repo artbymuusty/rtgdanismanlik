@@ -1,34 +1,36 @@
 import Link from "next/link";
 import { getDictionary } from "@/lib/content";
+import type { Locale } from "@/lib/i18n/config";
+import { localizedPath } from "@/lib/i18n/routes";
 import { siteConfig, getSocialLinks, whatsappLinkFor } from "@/lib/site-config";
 import { Container } from "@/components/ui/Container";
 import { SocialIcon } from "@/components/ui/SocialIcon";
 
-export function Footer() {
-  const t = getDictionary();
+export function Footer({ lang }: { lang: Locale }) {
+  const t = getDictionary(lang);
   const social = getSocialLinks();
   const whatsapp = whatsappLinkFor();
 
   const navLinks = [
-    { href: "/nasil-yardimci-oluyoruz", label: t.nav.services },
-    { href: "/mentorluk", label: t.nav.mentorship },
-    { href: "/ogrenci-hikayeleri", label: t.nav.studentStories },
-    { href: "/hakkimizda", label: t.nav.about },
-    { href: "/fiyatlar", label: t.nav.pricing },
-    { href: "/sss", label: t.nav.faq },
-    { href: "/iletisim", label: t.nav.contact },
-    { href: "/bize-katilin", label: t.nav.joinUs },
+    { href: localizedPath(lang, "services"), label: t.nav.services },
+    { href: localizedPath(lang, "mentorship"), label: t.nav.mentorship },
+    { href: localizedPath(lang, "stories"), label: t.nav.studentStories },
+    { href: localizedPath(lang, "about"), label: t.nav.about },
+    { href: localizedPath(lang, "pricing"), label: t.nav.pricing },
+    { href: localizedPath(lang, "faq"), label: t.nav.faq },
+    { href: localizedPath(lang, "contact"), label: t.nav.contact },
+    { href: localizedPath(lang, "joinUs"), label: t.nav.joinUs },
   ];
 
   const socialLinks = [
     social.linkedinUrl
-      ? { platform: "linkedin" as const, href: social.linkedinUrl, label: social.demo.linkedin ? "LinkedIn (örnek hesap)" : "LinkedIn" }
+      ? { platform: "linkedin" as const, href: social.linkedinUrl, label: social.demo.linkedin ? `LinkedIn (${t.common.sampleAccount})` : "LinkedIn" }
       : null,
     social.instagramUrl
-      ? { platform: "instagram" as const, href: social.instagramUrl, label: social.demo.instagram ? "Instagram (örnek hesap)" : "Instagram" }
+      ? { platform: "instagram" as const, href: social.instagramUrl, label: social.demo.instagram ? `Instagram (${t.common.sampleAccount})` : "Instagram" }
       : null,
     social.xUrl
-      ? { platform: "x" as const, href: social.xUrl, label: social.demo.x ? "X (örnek hesap)" : "X" }
+      ? { platform: "x" as const, href: social.xUrl, label: social.demo.x ? `X (${t.common.sampleAccount})` : "X" }
       : null,
   ].filter((s): s is NonNullable<typeof s> => s !== null);
 
@@ -69,8 +71,8 @@ export function Footer() {
           <p className="font-mono text-xs uppercase tracking-[0.1em] text-muted">{t.footer.legalTitle}</p>
           <ul className="mt-3 flex flex-col gap-2 text-sm">
             {t.footer.legalLinks.map((link) => (
-              <li key={link.href}>
-                <Link href={link.href} className="text-ink/80 transition-colors hover:text-accent active:opacity-60">
+              <li key={link.route}>
+                <Link href={localizedPath(lang, link.route)} className="text-ink/80 transition-colors hover:text-accent active:opacity-60">
                   {link.label}
                 </Link>
               </li>
@@ -82,7 +84,7 @@ export function Footer() {
         <Container className="flex flex-wrap items-center justify-between gap-4">
           <p className="font-mono text-xs text-muted">{t.footer.rights}</p>
           {socialLinks.length > 0 ? (
-            <div className="flex items-center gap-2" aria-label="Sosyal medya bağlantıları">
+            <div className="flex items-center gap-2" aria-label={t.common.socialLinksLabel}>
               {socialLinks.map((s) => (
                 <a
                   key={s.platform}

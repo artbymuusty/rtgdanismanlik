@@ -1,10 +1,12 @@
 import { getDictionary } from "@/lib/content";
+import type { Locale } from "@/lib/i18n/config";
+import { localizedPath } from "@/lib/i18n/routes";
 import { whatsappLinkFor } from "@/lib/site-config";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 
-export function FinalCta() {
-  const t = getDictionary().home.finalCta;
+export function FinalCta({ lang }: { lang: Locale }) {
+  const t = getDictionary(lang).home.finalCta;
   const whatsapp = whatsappLinkFor();
 
   return (
@@ -28,11 +30,11 @@ export function FinalCta() {
       </svg>
 
       <Container className="relative max-w-2xl text-center">
-        <p className="mb-4 font-mono text-xs uppercase tracking-[0.14em] text-gold">Nereden Olursan Ol · Almanya</p>
+        <p className="mb-4 font-mono text-xs uppercase tracking-[0.14em] text-gold">{t.eyebrow}</p>
         <h2 className="text-balance font-display text-4xl font-semibold sm:text-5xl">{t.title}</h2>
         <p className="mt-4 text-lg text-paper/75">{t.description}</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Button href="/basvuru">{t.ctaPrimary}</Button>
+          <Button href={localizedPath(lang, "apply")}>{t.ctaPrimary}</Button>
           {whatsapp ? (
             <Button href={whatsapp} variant="secondary" className="!border-paper !text-paper hover:!bg-paper hover:!text-ink">
               {t.ctaSecondary}

@@ -1,9 +1,11 @@
 import { getDictionary } from "@/lib/content";
+import type { Locale } from "@/lib/i18n/config";
+import { localizedPath } from "@/lib/i18n/routes";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 
-export function FaqPreview() {
-  const t = getDictionary();
+export function FaqPreview({ lang }: { lang: Locale }) {
+  const t = getDictionary(lang);
   const previewItems = t.faq.items.slice(-3);
 
   return (
@@ -30,7 +32,7 @@ export function FaqPreview() {
         </div>
 
         <div className="mt-6">
-          <Button href="/sss" variant="ghost">
+          <Button href={localizedPath(lang, "faq")} variant="ghost">
             {t.home.faqPreview.cta} →
           </Button>
         </div>

@@ -9,10 +9,12 @@ export function StudentStoryCard({
   story,
   isDemo = false,
   priority = false,
+  sample,
 }: {
   story: StudentStory;
   isDemo?: boolean;
   priority?: boolean;
+  sample: string;
 }) {
   return (
     <article>
@@ -26,7 +28,7 @@ export function StudentStoryCard({
         />
         {isDemo ? (
           <span className="absolute right-3 top-3 rounded-full border border-gold bg-paper/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-gold">
-            Örnek
+            {sample}
           </span>
         ) : null}
         <span className="absolute bottom-3 left-3 rounded-full border border-line bg-paper/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-ink">

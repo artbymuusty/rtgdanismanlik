@@ -1,4 +1,5 @@
 import { getDictionary } from "@/lib/content";
+import type { Locale } from "@/lib/i18n/config";
 import { EditorialPhoto } from "@/components/ui/EditorialPhoto";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -10,8 +11,8 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
  * placeholder names the specific moment that photo will show, so the
  * section reads as an intentional triptych rather than three empty boxes.
  */
-export function VisualStorytelling() {
-  const t = getDictionary().home.visualStory;
+export function VisualStorytelling({ lang }: { lang: Locale }) {
+  const t = getDictionary(lang).home.visualStory;
 
   return (
     <section className="border-b border-line py-16 sm:py-20">

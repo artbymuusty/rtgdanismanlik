@@ -1,21 +1,17 @@
 /**
- * Single source of truth for brand/business configuration — replaces the
- * old Supabase-backed `site_settings`/`social_links` tables (see
- * REBUILD_ANALYSIS.md §8). No database: changing a value here requires a
- * redeploy, which is the known trade-off of removing Supabase (CP1
- * decision #1 in the rebuild plan).
+ * Single source of truth for brand/business configuration. There is no
+ * database dependency: changing a value here requires a redeploy.
  *
  * Every "real business value" field starts empty because the live
- * education-mentoring database had nothing configured in them either
- * (verified via Supabase query, CP1) — never fabricate a placeholder
- * WhatsApp number, e-mail, or social URL here.
+ * earlier configuration had nothing configured in them either — never
+ * fabricate a placeholder WhatsApp number, e-mail, or social URL here.
  */
 export const siteConfig = {
-  name: "rtgdanismanlik",
+  /** Official brand name — shown exactly like this everywhere (header,
+   * footer, page titles, share image, structured data). */
+  name: "RTG Danışmanlık",
   shortName: "RTG",
-  tagline: "Almanya eğitim yolculuğunda yol arkadaşın",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://rtgdanismanlik.example.com",
-  locale: "tr" as const,
 
   /** Empty means "not configured yet" — callers must skip rendering the
    * dependent UI rather than falling back to a placeholder. */

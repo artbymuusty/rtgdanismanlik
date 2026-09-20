@@ -1,4 +1,4 @@
-import type { StudentStory } from "@/lib/content/types";
+import type { Dictionary, StudentStory } from "@/lib/content/types";
 import { EditorialPhoto } from "@/components/ui/EditorialPhoto";
 import { cn } from "@/lib/cn";
 
@@ -6,12 +6,17 @@ export function FeaturedStudentStory({
   story,
   isDemo = false,
   reverse = false,
-  label = "Öne Çıkan Hikâye",
+  label,
+  t,
+  sample,
 }: {
   story: StudentStory;
   isDemo?: boolean;
   reverse?: boolean;
+  /** Overrides the default "featured story" eyebrow (the stories page shows city · field instead). */
   label?: string;
+  t: Pick<Dictionary["stories"], "featuredLabel" | "startedFrom" | "stepsTaken" | "nowWhere">;
+  sample: string;
 }) {
   return (
     <div
@@ -30,7 +35,7 @@ export function FeaturedStudentStory({
         />
         {isDemo ? (
           <span className="absolute right-4 top-4 rounded-full border border-gold bg-paper/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-gold">
-            Örnek
+            {sample}
           </span>
         ) : null}
         <span className="absolute bottom-4 left-4 rounded-full border border-line bg-paper/90 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink">
@@ -39,7 +44,7 @@ export function FeaturedStudentStory({
       </div>
 
       <div className={reverse ? "lg:order-1" : undefined}>
-        <p className="font-mono text-xs uppercase tracking-[0.1em] text-gold">{label}</p>
+        <p className="font-mono text-xs uppercase tracking-[0.1em] text-gold">{label ?? t.featuredLabel}</p>
         <p className="mt-4 text-balance font-display text-2xl italic leading-snug text-ink sm:text-3xl">
           &ldquo;{story.quote}&rdquo;
         </p>
@@ -50,15 +55,15 @@ export function FeaturedStudentStory({
 
         <div className="mt-8 flex flex-col gap-5 border-t border-line pt-6">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted">Nereden başladı?</p>
+            <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted">{t.startedFrom}</p>
             <p className="mt-1 text-ink">{story.startingPoint}</p>
           </div>
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted">Birlikte hangi adımlardan geçildi?</p>
+            <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted">{t.stepsTaken}</p>
             <p className="mt-1 text-ink">{story.stepsTaken}</p>
           </div>
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted">Şimdi nerede?</p>
+            <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted">{t.nowWhere}</p>
             <p className="mt-1 text-ink">{story.now}</p>
           </div>
         </div>

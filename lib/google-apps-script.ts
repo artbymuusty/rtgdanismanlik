@@ -11,9 +11,28 @@
  * shared secret travels inside the JSON body instead of a header.
  */
 
+import { fallbackLocale, isLocale, type Locale } from "@/lib/i18n/config";
+
 const REQUEST_TIMEOUT_MS = 8000;
 
-const GENERIC_ERROR = "Başvuru şu anda tamamlanamadı. Lütfen İletişim sayfasındaki kanallardan bize ulaş.";
+const GENERIC_ERRORS: Record<Locale, string> = {
+  tr: "Başvuru şu anda tamamlanamadı. Lütfen İletişim sayfasındaki kanallardan bize ulaş.",
+  en: "Your application couldn't be completed right now. Please reach us through the channels on the Contact page.",
+};
+
+const INVALID_FORM_ERRORS: Record<Locale, string> = {
+  tr: "Formda eksik veya hatalı bir alan var.",
+  en: "A field in the form is missing or incorrect.",
+};
+
+/** The client passes its language along; anything unexpected falls back safely. */
+export function toLocale(value: unknown): Locale {
+  return isLocale(value) ? value : fallbackLocale;
+}
+
+export function invalidFormError(locale: Locale): string {
+  return INVALID_FORM_ERRORS[locale];
+}
 
 export type AppsScriptResult = { ok: true; id: string } | { ok: false; error: string };
 
@@ -30,7 +49,11 @@ interface AppsScriptRequest {
  * RTG-toned error. Only a short, PII-free category is logged
  * server-side (never the payload — no name/email/phone/free-text).
  */
-export async function submitToAppsScript(request: AppsScriptRequest): Promise<AppsScriptResult> {
+export async function submitToAppsScript(
+  request: AppsScriptRequest,
+  locale: Locale = "tr",
+): Promise<AppsScriptResult> {
+  const GENERIC_ERROR = GENERIC_ERRORS[locale];
   const url = process.env.GOOGLE_APPS_SCRIPT_URL;
   const secret = process.env.GOOGLE_APPS_SCRIPT_SECRET;
 
@@ -62,7 +85,12 @@ export async function submitToAppsScript(request: AppsScriptRequest): Promise<Ap
 
     const data: unknown = await response.json().catch(() => null);
     if (!data || typeof data !== "object" || !("ok" in data)) {
-      console.error("[google-apps-script] malformed response body");
+      // Status + content-type only (never the body) — an HTML content-type
+      // here means Apps Script served a login/error page instead of doPost's
+      // JSON, i.e. a wrong URL, wrong deployment access, or a script error.
+      console.error(
+        `[google-apps-script] malformed response body (status ${response.status}, content-type ${response.headers.get("content-type") ?? "none"}, redirected ${response.redirected})`,
+      );
       return { ok: false, error: GENERIC_ERROR };
     }
 

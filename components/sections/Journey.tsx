@@ -1,10 +1,11 @@
 import { getDictionary } from "@/lib/content";
+import type { Locale } from "@/lib/i18n/config";
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
 import { WorldMap } from "@/components/ui/WorldMap";
 
-export function Journey() {
-  const t = getDictionary().home.journey;
+export function Journey({ lang }: { lang: Locale }) {
+  const t = getDictionary(lang).home.journey;
 
   return (
     <section className="border-b border-line bg-paper-raised py-16 sm:py-24">
@@ -14,7 +15,7 @@ export function Journey() {
           <h2 className="text-balance font-display text-3xl font-semibold sm:text-4xl">{t.title}</h2>
           <p className="mt-4 max-w-md text-muted">{t.description}</p>
         </Reveal>
-        <WorldMap />
+        <WorldMap originLabel={t.mapOrigin} destinationLabel={t.mapDestination} />
       </Container>
     </section>
   );

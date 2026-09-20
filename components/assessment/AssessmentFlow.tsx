@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { getDictionary } from "@/lib/content";
-import type { AssessmentOption } from "@/lib/content/types";
+import type { AssessmentOption, Dictionary } from "@/lib/content/types";
+import type { Locale } from "@/lib/i18n/config";
 import type { LeadInput } from "@/lib/validation/lead";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
-import { submitLead } from "@/app/basvuru/actions";
+import { submitLead } from "@/app/[lang]/basvuru/actions";
 
 type Answers = Record<string, string>;
 type ContactField = "firstName" | "lastName" | "phone" | "email" | "preferredContact" | "honeypot";
@@ -23,13 +23,20 @@ const emptyContact: Contact = {
 };
 
 export function AssessmentFlow({
+  lang,
+  t,
+  common,
+  homeHref,
   initialStage,
   whatsappLink,
 }: {
+  lang: Locale;
+  t: Dictionary["assessment"];
+  common: Dictionary["common"];
+  homeHref: string;
   initialStage?: string;
   whatsappLink: string | null;
 }) {
-  const t = getDictionary().assessment;
   const steps = t.steps;
 
   const [status, setStatus] = useState<FlowStatus>("intro");
@@ -96,7 +103,7 @@ export function AssessmentFlow({
 
   async function handleSubmit() {
     if (!contact.firstName.trim() || !contact.lastName.trim() || !contact.phone.trim() || !contact.email.trim() || !contact.preferredContact) {
-      setErrorMessage("Lütfen ad, soyad, telefon, e-posta ve tercih ettiğin iletişim yöntemini doldur.");
+      setErrorMessage(t.contactValidation);
       return;
     }
 
@@ -122,7 +129,7 @@ export function AssessmentFlow({
       preferredContact: contact.preferredContact as "whatsapp" | "phone",
       submissionId,
       honeypot: contact.honeypot,
-    });
+    }, lang);
 
     if (result.ok) {
       setStatus("success");
@@ -154,10 +161,10 @@ export function AssessmentFlow({
         <div className="mt-4 flex flex-wrap gap-3">
           {whatsappLink ? (
             <Button href={whatsappLink} variant="secondary">
-              WhatsApp&apos;tan Yaz
+              {common.whatsappWrite}
             </Button>
           ) : null}
-          <Button href="/" variant="ghost">
+          <Button href={homeHref} variant="ghost">
             {t.success.backHome}
           </Button>
         </div>
@@ -214,6 +221,7 @@ export function AssessmentFlow({
           fields={t.contactStep.fields}
           title={t.contactStep.title}
           description={t.contactStep.description}
+          honeypotLabel={common.honeypotLabel}
         />
       )}
 
@@ -226,13 +234,13 @@ export function AssessmentFlow({
       <div className="mt-8 flex gap-3">
         {stepIndex > 0 || status === "contact" ? (
           <Button variant="secondary" onClick={goBack} disabled={status === "submitting"}>
-            Geri
+            {common.back}
           </Button>
         ) : null}
 
         {!isContactStep ? (
           <Button onClick={goNext} disabled={!canAdvance}>
-            İleri
+            {common.next}
           </Button>
         ) : (
           <Button onClick={handleSubmit} disabled={status === "submitting"}>
@@ -315,6 +323,7 @@ function ContactStep({
   fields,
   title,
   description,
+  honeypotLabel,
 }: {
   contact: Contact;
   onChange: (field: ContactField, value: string) => void;
@@ -328,6 +337,7 @@ function ContactStep({
   };
   title: string;
   description: string;
+  honeypotLabel: string;
 }) {
   return (
     <div>
@@ -338,7 +348,7 @@ function ContactStep({
           not tab-focusable, aria-hidden). A form-filling bot fills every
           input it finds, tripping the server-side check. */}
       <div aria-hidden="true" className="absolute left-[-9999px] top-auto h-0 w-0 overflow-hidden">
-        <label htmlFor="company">Şirket</label>
+        <label htmlFor="company">{honeypotLabel}</label>
         <input
           id="company"
           name="company"

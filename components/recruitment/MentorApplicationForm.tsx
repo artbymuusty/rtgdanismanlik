@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { getDictionary } from "@/lib/content";
+import type { Dictionary } from "@/lib/content/types";
+import type { Locale } from "@/lib/i18n/config";
 import { Button } from "@/components/ui/Button";
-import { submitMentorApplication } from "@/app/bize-katilin/actions";
+import { submitMentorApplication } from "@/app/[lang]/bize-katilin/actions";
 
 type FormState = {
   firstName: string;
@@ -27,8 +28,17 @@ const emptyState: FormState = {
   honeypot: "",
 };
 
-export function MentorApplicationForm() {
-  const t = getDictionary().bizeKatilin;
+export function MentorApplicationForm({
+  lang,
+  t,
+  homeHref,
+  honeypotLabel,
+}: {
+  lang: Locale;
+  t: Dictionary["bizeKatilin"];
+  homeHref: string;
+  honeypotLabel: string;
+}) {
   const [values, setValues] = useState<FormState>(emptyState);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -46,7 +56,7 @@ export function MentorApplicationForm() {
     setStatus("submitting");
     setErrorMessage(null);
 
-    const result = await submitMentorApplication({ ...values, submissionId });
+    const result = await submitMentorApplication({ ...values, submissionId }, lang);
 
     if (result.ok) {
       setStatus("success");
@@ -61,7 +71,7 @@ export function MentorApplicationForm() {
       <div className="rounded-[3px] border border-accent bg-paper-raised p-8">
         <h2 className="font-display text-2xl font-semibold">{t.success.title}</h2>
         <p className="mt-3 text-muted">{t.success.description}</p>
-        <Button href="/" variant="ghost" className="mt-6">
+        <Button href={homeHref} variant="ghost" className="mt-6">
           {t.success.backHome}
         </Button>
       </div>
@@ -74,7 +84,7 @@ export function MentorApplicationForm() {
           not tab-focusable, aria-hidden). A form-filling bot fills every
           input it finds, tripping the server-side check. */}
       <div aria-hidden="true" className="absolute left-[-9999px] top-auto h-0 w-0 overflow-hidden">
-        <label htmlFor="mentor-company">Şirket</label>
+        <label htmlFor="mentor-company">{honeypotLabel}</label>
         <input
           id="mentor-company"
           name="company"

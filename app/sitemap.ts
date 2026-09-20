@@ -1,27 +1,20 @@
 import type { MetadataRoute } from "next";
+import { locales } from "@/lib/i18n/config";
+import { localizedPath, routeKeys } from "@/lib/i18n/routes";
 import { siteConfig } from "@/lib/site-config";
 
-const routes = [
-  "",
-  "/nasil-yardimci-oluyoruz",
-  "/mentorluk",
-  "/ogrenci-hikayeleri",
-  "/hakkimizda",
-  "/fiyatlar",
-  "/sss",
-  "/iletisim",
-  "/basvuru",
-  "/bize-katilin",
-  "/gizlilik",
-  "/kvkk",
-  "/kullanim-sartlari",
-];
-
+// One entry per page per language, each listing its translations so search
+// engines connect the Turkish and English versions of the same page.
 export default function sitemap(): MetadataRoute.Sitemap {
-  return routes.map((route) => ({
-    url: `${siteConfig.url}${route}`,
-    lastModified: new Date(),
-    changeFrequency: route === "" ? "weekly" : "monthly",
-    priority: route === "" ? 1 : 0.6,
-  }));
+  return routeKeys.flatMap((key) =>
+    locales.map((lang) => ({
+      url: `${siteConfig.url}${localizedPath(lang, key)}`,
+      lastModified: new Date(),
+      changeFrequency: key === "home" ? ("weekly" as const) : ("monthly" as const),
+      priority: key === "home" ? 1 : 0.6,
+      alternates: {
+        languages: Object.fromEntries(locales.map((l) => [l, `${siteConfig.url}${localizedPath(l, key)}`])),
+      },
+    })),
+  );
 }
