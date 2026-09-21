@@ -11,7 +11,16 @@ export const siteConfig = {
    * footer, page titles, share image, structured data). */
   name: "RTG Danışmanlık",
   shortName: "RTG",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://rtgdanismanlik.example.com",
+  /** Canonical origin for canonical/hreflang/sitemap/OG URLs. Resolution order:
+   * NEXT_PUBLIC_SITE_URL (the real domain — always wins) → the production
+   * domain Vercel exposes to every build → a placeholder. Without the Vercel
+   * step, a deployment with no env set would publish "example.com" to
+   * search engines. */
+  url:
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "https://rtgdanismanlik.example.com"),
 
   /** Empty means "not configured yet" — callers must skip rendering the
    * dependent UI rather than falling back to a placeholder. */
