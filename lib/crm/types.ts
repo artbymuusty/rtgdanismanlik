@@ -70,7 +70,12 @@ export interface ActivityEntry {
 
 export type SortDirection = "asc" | "desc";
 
+/** `column` is which date column the range applies to — the Filtrele panel
+ * always uses "Başvuru Tarihi"; the "Bugün" panel's "İlk görüşme bugün"
+ * shortcut is the same mechanism pointed at "İlk Görüşme Tarihi" instead,
+ * so both go through the one filter/query implementation. */
 export interface DateRangeFilter {
+  column: CrmColumn;
   from?: string; // yyyy-mm-dd
   to?: string; // yyyy-mm-dd
 }

@@ -80,11 +80,11 @@ export const FIELDS: FieldMeta[] = [
   F({ column: "Tercih Edilen İletişim", width: "sm", defaultVisible: false, searchable: false, filterable: true, inlineEditable: true, group: "personal" }),
   F({ column: "Aşama", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: true, group: "education" }),
   F({ column: "Eğitim Durumu", width: "sm", defaultVisible: false, searchable: false, filterable: true, inlineEditable: false, group: "education" }),
-  F({ column: "İlgi Alanı", width: "sm", defaultVisible: false, searchable: false, filterable: true, inlineEditable: false, group: "education" }),
-  F({ column: "İngilizce Seviyesi", width: "xs", defaultVisible: false, searchable: false, filterable: true, inlineEditable: false, group: "education" }),
+  F({ column: "İlgi Alanı", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "education" }),
+  F({ column: "İngilizce Seviyesi", width: "xs", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "education" }),
   F({ column: "Almanca Seviyesi", width: "xs", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "education" }),
-  F({ column: "Almanya Hedefi", width: "sm", defaultVisible: false, searchable: false, filterable: true, inlineEditable: false, group: "goal" }),
-  F({ column: "Zaman Çizelgesi", width: "sm", defaultVisible: false, searchable: false, filterable: true, inlineEditable: false, group: "goal" }),
+  F({ column: "Almanya Hedefi", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "goal" }),
+  F({ column: "Zaman Çizelgesi", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "goal" }),
   F({ column: "Hakkında / Deneyim", width: "xl", defaultVisible: false, searchable: true, filterable: false, inlineEditable: false, group: "application", multiline: true }),
   F({ column: "Mesaj", width: "xl", defaultVisible: false, searchable: true, filterable: false, inlineEditable: false, group: "application", multiline: true }),
   F({ column: "Bizi Nereden Duydunuz", width: "sm", defaultVisible: false, searchable: false, filterable: false, inlineEditable: false, group: "application" }),
@@ -104,6 +104,17 @@ export const FIELD_BY_COLUMN: Record<CrmColumn, FieldMeta> = Object.fromEntries(
 export const DEFAULT_VISIBLE_COLUMNS: CrmColumn[] = FIELDS.filter((f) => f.defaultVisible).map((f) => f.column);
 export const SEARCHABLE_COLUMNS: CrmColumn[] = FIELDS.filter((f) => f.searchable).map((f) => f.column);
 export const FILTERABLE_COLUMNS: CrmColumn[] = FIELDS.filter((f) => f.filterable).map((f) => f.column);
+
+/** "Lead Intelligence" columns — shown as a compact labeled pill (e.g. "DE
+ * B2", "Hedef: Master") instead of plain truncated text, for at-a-glance
+ * scanning in the dense table and on mobile cards. Display only — the
+ * underlying stored value never changes. */
+export const BADGE_COLUMNS: Partial<Record<CrmColumn, string>> = {
+  "İngilizce Seviyesi": "EN",
+  "Almanca Seviyesi": "DE",
+  "Almanya Hedefi": "Hedef",
+  "Zaman Çizelgesi": "Zaman",
+};
 
 export const GROUP_LABELS: Record<FieldGroup, string> = {
   personal: "Kişisel",

@@ -10,7 +10,7 @@ const MESSAGES: Record<string, string> = {
   "sheet_header_mismatch:LEADS_CRM": "LEADS_CRM başlıkları beklenenden farklı görünüyor. Teknik ekiple iletişime geç.",
   missing_id: "Kayıt kimliği eksik.",
   not_found: "Bu kayıt bulunamadı — silinmiş veya taşınmış olabilir.",
-  conflict: "Bu kayıt az önce başka biri tarafından güncellendi. Güncel veriyle tekrar dene.",
+  conflict: "Bu kayıt başka bir kullanıcı tarafından güncellendi. En güncel haliyle yenilendi, tekrar deneyebilirsin.",
   busy: "Sistem şu anda yoğun. Birkaç saniye sonra tekrar dene.",
   invalid_status: "Geçersiz durum değeri.",
   invalid_responsible: "Bu isim Sorumlu listesinde (TEAM sayfası) yok.",

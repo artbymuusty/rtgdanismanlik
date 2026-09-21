@@ -3,6 +3,7 @@
 import { enumLabel } from "@/lib/crm/fields";
 import { formatCrmDate } from "@/lib/crm/format";
 import type { CrmLead } from "@/lib/crm/types";
+import { LevelBadge } from "./LevelBadge";
 import { StatusBadge } from "./StatusSelect";
 import { cn } from "@/lib/cn";
 
@@ -42,6 +43,9 @@ export function MobileLeadList({
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <StatusBadge status={lead.Durum} />
               {lead["Aşama"] ? <span className="rounded-full border border-line px-2 py-0.5 text-xs text-ink">{enumLabel("Aşama", lead["Aşama"])}</span> : null}
+              {lead["Almanca Seviyesi"] ? <LevelBadge column="Almanca Seviyesi" value={lead["Almanca Seviyesi"]} /> : null}
+              {lead["İngilizce Seviyesi"] ? <LevelBadge column="İngilizce Seviyesi" value={lead["İngilizce Seviyesi"]} /> : null}
+              {lead["Almanya Hedefi"] ? <LevelBadge column="Almanya Hedefi" value={lead["Almanya Hedefi"]} /> : null}
               {lead.Sorumlu ? <span className="rounded-full border border-line px-2 py-0.5 text-xs text-muted">{lead.Sorumlu}</span> : null}
             </div>
           </button>

@@ -1,9 +1,10 @@
 "use client";
 
-import { FIELD_BY_COLUMN, enumLabel, ENUM_LABELS } from "@/lib/crm/fields";
+import { BADGE_COLUMNS, FIELD_BY_COLUMN, enumLabel, ENUM_LABELS } from "@/lib/crm/fields";
 import { formatCrmDate } from "@/lib/crm/format";
 import type { CrmColumn, CrmLead, SortDirection } from "@/lib/crm/types";
 import { InlineSelectCell, InlineTextCell, NotesCell, type CellSave } from "./EditableCells";
+import { LevelBadge } from "./LevelBadge";
 import { StatusSelect } from "./StatusSelect";
 import { cn } from "@/lib/cn";
 
@@ -73,6 +74,13 @@ export function DataTable({
       case "ID":
         return <span className="block truncate px-1.5 py-1 font-mono text-[11px] text-muted">{lead.ID}</span>;
       default: {
+        if (BADGE_COLUMNS[column]) {
+          return (
+            <span className="block px-1.5 py-1">
+              <LevelBadge column={column} value={lead[column]} />
+            </span>
+          );
+        }
         const display = enumLabel(column, lead[column]);
         return (
           <span className="block truncate px-1.5 py-1 text-xs text-ink" title={display}>
@@ -95,8 +103,18 @@ export function DataTable({
               const meta = FIELD_BY_COLUMN[column];
               const active = sortBy === column;
               return (
-                <th key={column} className={cn("px-1.5 py-2 font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted", WIDTH_CLASS[meta.width])}>
-                  <button type="button" onClick={() => onSortChange(column)} className={cn("flex items-center gap-1 hover:text-ink", active && "text-ink")}>
+                <th
+                  key={column}
+                  scope="col"
+                  aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
+                  className={cn("px-1.5 py-2 font-mono text-[10px] font-medium uppercase tracking-[0.06em] text-muted", WIDTH_CLASS[meta.width])}
+                >
+                  <button
+                    type="button"
+                    onClick={() => onSortChange(column)}
+                    aria-label={`${column} sütununa göre sırala${active ? `, şu an ${sortDir === "asc" ? "artan" : "azalan"}` : ""}`}
+                    className={cn("flex items-center gap-1 hover:text-ink", active && "text-ink")}
+                  >
                     <span className="truncate">{column}</span>
                     {active ? <span aria-hidden="true">{sortDir === "asc" ? "▲" : "▼"}</span> : null}
                   </button>
@@ -107,7 +125,24 @@ export function DataTable({
         </thead>
         <tbody className="divide-y divide-line">
           {rows.map((lead) => (
-            <tr key={lead.ID} className={cn("group cursor-pointer hover:bg-paper-raised", selected.has(lead.ID) && "bg-accent/5")} onClick={() => onOpenLead(lead.ID)}>
+            <tr
+              key={lead.ID}
+              tabIndex={0}
+              aria-selected={selected.has(lead.ID)}
+              aria-label={`${lead.Ad} ${lead.Soyad} detaylarını aç`}
+              onClick={() => onOpenLead(lead.ID)}
+              onKeyDown={(e) => {
+                if (e.target !== e.currentTarget) return; // let inline inputs/selects handle their own keys
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onOpenLead(lead.ID);
+                }
+              }}
+              className={cn(
+                "group cursor-pointer hover:bg-paper-raised focus-visible:bg-paper-raised focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
+                selected.has(lead.ID) && "bg-accent/5",
+              )}
+            >
               <td className="sticky left-0 z-10 w-10 bg-paper px-2 py-1.5 group-hover:bg-paper-raised" onClick={(e) => e.stopPropagation()}>
                 <input type="checkbox" aria-label={`${lead.Ad} ${lead.Soyad} seç`} checked={selected.has(lead.ID)} onChange={() => onToggleSelect(lead.ID)} className="h-4 w-4 accent-accent" />
               </td>

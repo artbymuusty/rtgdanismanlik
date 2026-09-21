@@ -2,16 +2,27 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { crmBulkUpdateAction, crmExportCsvAction, crmListAction, crmUpdateAction, type CrmListResponse } from "@/app/crm/actions";
+import {
+  crmBulkUpdateAction,
+  crmExportCsvAction,
+  crmExportCsvByIdsAction,
+  crmListAction,
+  crmUpdateAction,
+  type CrmListResponse,
+} from "@/app/crm/actions";
 import { activeFilterCount } from "./FilterPanel";
 import { crmErrorMessage, isSessionError } from "@/lib/crm/error-messages";
-import type { CrmColumn, CrmLead, CrmQuery, DateRangeFilter } from "@/lib/crm/types";
-import type { StatusCounts } from "@/lib/crm/query";
+import type { CrmColumn, CrmLead, CrmQuery, DateRangeFilter, SortDirection } from "@/lib/crm/types";
+import type { StatusCounts, TodayCounts } from "@/lib/crm/query";
+import { STATUS_NOT_MET } from "@/lib/crm/types";
 import { useActorName } from "./ActorBadge";
 import { useVisibleColumns } from "./ColumnsMenu";
 import { useDebouncedValue, useMediaQuery } from "./hooks";
 import { Topbar } from "./Topbar";
+import { KpiStrip } from "./KpiStrip";
+import { TodayPanel } from "./TodayPanel";
 import { SavedViewsBar } from "./SavedViewsBar";
+import { Toolbar } from "./Toolbar";
 import { DataTable } from "./DataTable";
 import { MobileLeadList } from "./MobileLeadList";
 import { LeadDrawer } from "./LeadDrawer";
@@ -19,6 +30,16 @@ import { BulkBar } from "./BulkBar";
 import { NewLeadDialog } from "./NewLeadDialog";
 import { EmptyResult, ErrorBanner, TableSkeleton } from "./EmptyStates";
 import type { CellSaveResult } from "./EditableCells";
+
+function downloadCsv(csv: string) {
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `rtg-crm-leads-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 type LoadResult = CrmListResponse | { ok: false; error: string };
 
@@ -51,8 +72,26 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
   const [rows, setRows] = useState<CrmLead[]>(isFail(initialResult) ? [] : initialResult.rows);
   const [meta, setMeta] = useState(
     isFail(initialResult)
-      ? { total: 0, page: 1, pageCount: 1, counts: { total: 0, byStatus: {} } as StatusCounts, team: [] as string[], statuses: [] as string[], facets: {} }
-      : { total: initialResult.total, page: initialResult.page, pageCount: initialResult.pageCount, counts: initialResult.counts, team: initialResult.team, statuses: initialResult.statuses, facets: initialResult.facets },
+      ? {
+          total: 0,
+          page: 1,
+          pageCount: 1,
+          counts: { total: 0, byStatus: {} } as StatusCounts,
+          team: [] as string[],
+          statuses: [] as string[],
+          facets: {},
+          today: { appliedToday: 0, metToday: 0 } as TodayCounts,
+        }
+      : {
+          total: initialResult.total,
+          page: initialResult.page,
+          pageCount: initialResult.pageCount,
+          counts: initialResult.counts,
+          team: initialResult.team,
+          statuses: initialResult.statuses,
+          facets: initialResult.facets,
+          today: initialResult.today,
+        },
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(isFail(initialResult) ? initialResult.error : null);
@@ -81,7 +120,16 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
       }
       setError(null);
       setRows(result.rows);
-      setMeta({ total: result.total, page: result.page, pageCount: result.pageCount, counts: result.counts, team: result.team, statuses: result.statuses, facets: result.facets });
+      setMeta({
+        total: result.total,
+        page: result.page,
+        pageCount: result.pageCount,
+        counts: result.counts,
+        team: result.team,
+        statuses: result.statuses,
+        facets: result.facets,
+        today: result.today,
+      });
     },
     [router],
   );
@@ -120,12 +168,31 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
+  // Header click (DataTable) only toggles the currently-visible column;
+  // SortMenu (Toolbar) sets any of the 23 columns with an explicit direction.
+  // Both write the same sortBy/sortDir state, so they never conflict.
   function handleSort(column: CrmColumn) {
     if (column === sortBy) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else {
       setSortBy(column);
       setSortDir("asc");
     }
+  }
+  function handleSortChange(column: CrmColumn, dir: SortDirection) {
+    setSortBy(column);
+    setSortDir(dir);
+  }
+
+  function clearFilters() {
+    setFilters({});
+    setDateFilter(undefined);
+    setSearch("");
+  }
+
+  function applyQuickQuery(q: Pick<CrmQuery, "search" | "filters" | "dateFilter">) {
+    setSearch(q.search);
+    setFilters(q.filters);
+    setDateFilter(q.dateFilter);
   }
 
   async function saveField(lead: CrmLead, column: CrmColumn, value: string): Promise<CellSaveResult> {
@@ -173,13 +240,19 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
       flashToast(crmErrorMessage(result.error));
       return;
     }
-    const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `rtg-crm-leads-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCsv(result.csv);
+  }
+
+  // The bulk bar's own CSV export: re-derives the exact selected rows from
+  // the server-side cache by ID, rather than trusting the client's
+  // currently-loaded page state, since a selection can span pages/filters.
+  async function handleBulkExportCsv() {
+    const result = await crmExportCsvByIdsAction([...selected], visibleColumns);
+    if (!result.ok) {
+      flashToast(crmErrorMessage(result.error));
+      return;
+    }
+    downloadCsv(result.csv);
   }
 
   function toggleSelect(id: string) {
@@ -206,34 +279,27 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
 
   return (
     <div className="flex h-dvh flex-col">
-      <Topbar
-        counts={meta.counts}
+      <Topbar search={search} onSearchChange={setSearch} onRefresh={() => load(query, true)} refreshing={loading} searchRef={searchRef} />
+      <KpiStrip counts={meta.counts} />
+      <TodayPanel
+        appliedToday={meta.today.appliedToday}
+        awaitingFirstMeeting={meta.counts.byStatus[STATUS_NOT_MET] ?? 0}
+        metToday={meta.today.metToday}
+        onApply={applyQuickQuery}
+      />
+      <SavedViewsBar query={{ search, filters, dateFilter }} onApply={applyQuickQuery} />
+      <Toolbar
         query={query}
         visibleColumns={visibleColumns}
         facets={meta.facets}
         team={meta.team}
-        onSearchChange={setSearch}
         onFiltersChange={setFilters}
         onDateFilterChange={setDateFilter}
-        onClearFilters={() => {
-          setFilters({});
-          setDateFilter(undefined);
-          setSearch("");
-        }}
+        onClearFilters={clearFilters}
+        onSortChange={handleSortChange}
         onColumnsChange={setVisibleColumns}
-        onRefresh={() => load(query, true)}
         onExport={handleExport}
         onNewLead={() => setShowNewLead(true)}
-        refreshing={loading}
-        searchRef={searchRef}
-      />
-      <SavedViewsBar
-        query={{ search, filters, dateFilter }}
-        onApply={(v) => {
-          setSearch(v.search);
-          setFilters(v.filters);
-          setDateFilter(v.dateFilter);
-        }}
       />
 
       <div className="min-h-0 flex-1 overflow-hidden">
@@ -242,14 +308,7 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
         ) : loading && rows.length === 0 ? (
           <TableSkeleton />
         ) : rows.length === 0 ? (
-          <EmptyResult
-            hasFilters={hasFilters}
-            onClearFilters={() => {
-              setFilters({});
-              setDateFilter(undefined);
-              setSearch("");
-            }}
-          />
+          <EmptyResult hasFilters={hasFilters} onClearFilters={clearFilters} />
         ) : isDesktop ? (
           <DataTable
             rows={rows}
@@ -301,7 +360,9 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
         </div>
       </div>
 
-      {selected.size > 0 ? <BulkBar count={selected.size} team={meta.team} onApply={handleBulkApply} onClear={() => setSelected(new Set())} /> : null}
+      {selected.size > 0 ? (
+        <BulkBar count={selected.size} team={meta.team} onApply={handleBulkApply} onExportCsv={handleBulkExportCsv} onClear={() => setSelected(new Set())} />
+      ) : null}
 
       {openLead ? (
         <LeadDrawer

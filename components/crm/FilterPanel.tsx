@@ -2,21 +2,20 @@
 
 import { useMemo, useRef, useState } from "react";
 import { FIELDS, GROUP_LABELS, enumLabel } from "@/lib/crm/fields";
+import { isoToday } from "@/lib/crm/query";
 import { CRM_STATUSES, type CrmColumn, type CrmQuery, type DateRangeFilter } from "@/lib/crm/types";
 import { useDismiss } from "./hooks";
 import { StatusBadge } from "./StatusSelect";
 import { cn } from "@/lib/cn";
 
-function isoToday(offsetDays = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return d.toISOString().slice(0, 10);
-}
-
+// This panel's date range always targets "Başvuru Tarihi" — the "Bugün"
+// panel is what points the same DateRangeFilter mechanism at a different
+// column (İlk Görüşme Tarihi) — see TodayPanel.tsx.
+const DATE_COLUMN = "Başvuru Tarihi" as const;
 const DATE_PRESETS: { label: string; range: () => DateRangeFilter }[] = [
-  { label: "Bugün", range: () => ({ from: isoToday(), to: isoToday() }) },
-  { label: "Son 7 gün", range: () => ({ from: isoToday(-6), to: isoToday() }) },
-  { label: "Son 30 gün", range: () => ({ from: isoToday(-29), to: isoToday() }) },
+  { label: "Bugün", range: () => ({ column: DATE_COLUMN, from: isoToday(), to: isoToday() }) },
+  { label: "Son 7 gün", range: () => ({ column: DATE_COLUMN, from: isoToday(-6), to: isoToday() }) },
+  { label: "Son 30 gün", range: () => ({ column: DATE_COLUMN, from: isoToday(-29), to: isoToday() }) },
 ];
 
 export function activeFilterCount(query: Pick<CrmQuery, "filters" | "dateFilter">): number {
@@ -48,6 +47,11 @@ export function FilterPanel({
 
   const filterFields = useMemo(() => FIELDS.filter((f) => f.filterable && f.column !== "Başvuru Tarihi"), []);
   const count = activeFilterCount({ filters, dateFilter });
+  // If some OTHER date range is active (e.g. the "Bugün" panel's "İlk
+  // görüşme bugün" shortcut, which points this same mechanism at "İlk
+  // Görüşme Tarihi"), this panel's own Başvuru Tarihi inputs read as empty
+  // rather than showing an unrelated column's dates.
+  const ownDateFilter = dateFilter?.column === "Başvuru Tarihi" ? dateFilter : undefined;
 
   function toggle(column: CrmColumn, value: string) {
     const current = filters[column] ?? [];
@@ -101,7 +105,7 @@ export function FilterPanel({
                     {p.label}
                   </button>
                 ))}
-                {dateFilter ? (
+                {ownDateFilter ? (
                   <button type="button" onClick={() => onDateFilterChange(undefined)} className="rounded-full border border-line px-2.5 py-1 text-xs text-muted hover:border-danger hover:text-danger">
                     Temizle
                   </button>
@@ -111,16 +115,16 @@ export function FilterPanel({
                 <input
                   type="date"
                   aria-label="Başlangıç tarihi"
-                  value={dateFilter?.from ?? ""}
-                  onChange={(e) => onDateFilterChange({ ...dateFilter, from: e.target.value || undefined })}
+                  value={ownDateFilter?.from ?? ""}
+                  onChange={(e) => onDateFilterChange({ column: DATE_COLUMN, ...ownDateFilter, from: e.target.value || undefined })}
                   className="w-full rounded-[3px] border border-line bg-paper px-2 py-1.5 text-xs text-ink outline-none focus-visible:border-accent"
                 />
                 <span className="text-xs text-muted">–</span>
                 <input
                   type="date"
                   aria-label="Bitiş tarihi"
-                  value={dateFilter?.to ?? ""}
-                  onChange={(e) => onDateFilterChange({ ...dateFilter, to: e.target.value || undefined })}
+                  value={ownDateFilter?.to ?? ""}
+                  onChange={(e) => onDateFilterChange({ column: DATE_COLUMN, ...ownDateFilter, to: e.target.value || undefined })}
                   className="w-full rounded-[3px] border border-line bg-paper px-2 py-1.5 text-xs text-ink outline-none focus-visible:border-accent"
                 />
               </div>

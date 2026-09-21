@@ -11,11 +11,13 @@ export function BulkBar({
   count,
   team,
   onApply,
+  onExportCsv,
   onClear,
 }: {
   count: number;
   team: string[];
   onApply: (changes: Record<string, string>) => Promise<{ ok: true; updated: number; failed: number } | { ok: false; error: string }>;
+  onExportCsv: () => void;
   onClear: () => void;
 }) {
   const [action, setAction] = useState<Action>(null);
@@ -60,7 +62,10 @@ export function BulkBar({
             Durum değiştir
           </button>
           <button type="button" onClick={() => open("mentor")} className="rounded-[3px] border border-paper/30 px-3 py-1.5 text-xs hover:bg-paper/10">
-            Mentor ID ata
+            Mentor ata
+          </button>
+          <button type="button" onClick={onExportCsv} className="rounded-[3px] border border-paper/30 px-3 py-1.5 text-xs hover:bg-paper/10">
+            CSV Aktar
           </button>
         </div>
 

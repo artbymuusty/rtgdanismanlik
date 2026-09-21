@@ -1,6 +1,16 @@
 import { CRM_COLUMNS, type CrmColumn, type CrmLead, type CrmQuery } from "./types";
 import { FILTERABLE_COLUMNS, SEARCHABLE_COLUMNS } from "./fields";
 
+/** Today, or `offsetDays` from today, as yyyy-mm-dd in the visitor's local
+ * time zone — never a prediction, just a reliably computable calendar date.
+ * Shared by the Filtrele panel's date presets and the "Bugün" panel. */
+export function isoToday(offsetDays = 0): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 /** dd.MM.yyyy or dd.MM.yyyy HH:mm (Apps Script's own format) or an ISO
  * string (what the public form sends as "Başvuru Tarihi") — CRM dates are
  * never a single consistent format because two different writers produce
@@ -33,10 +43,10 @@ function matchesFilters(lead: CrmLead, filters: CrmQuery["filters"]): boolean {
 
 function matchesDate(lead: CrmLead, range: CrmQuery["dateFilter"]): boolean {
   if (!range || (!range.from && !range.to)) return true;
-  const applied = parseCrmDate(lead["Başvuru Tarihi"]);
-  if (!applied) return false;
-  if (range.from && applied < new Date(range.from + "T00:00:00")) return false;
-  if (range.to && applied > new Date(range.to + "T23:59:59")) return false;
+  const value = parseCrmDate(lead[range.column]);
+  if (!value) return false;
+  if (range.from && value < new Date(range.from + "T00:00:00")) return false;
+  if (range.to && value > new Date(range.to + "T23:59:59")) return false;
   return true;
 }
 
@@ -109,6 +119,29 @@ export function countByStatus(rows: CrmLead[]): StatusCounts {
   const byStatus: Record<string, number> = {};
   for (const lead of rows) byStatus[lead["Durum"]] = (byStatus[lead["Durum"]] ?? 0) + 1;
   return { total: rows.length, byStatus };
+}
+
+export interface TodayCounts {
+  appliedToday: number;
+  metToday: number;
+}
+
+/** Reliably computable "today" facts — never a prediction or estimate, just
+ * counting rows whose own dated column falls on today's calendar date. */
+export function computeTodayCounts(rows: CrmLead[]): TodayCounts {
+  const today = isoToday();
+  const dateKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const isToday = (value: string) => {
+    const d = parseCrmDate(value);
+    return d ? dateKey(d) === today : false;
+  };
+  let appliedToday = 0;
+  let metToday = 0;
+  for (const lead of rows) {
+    if (isToday(lead["Başvuru Tarihi"])) appliedToday++;
+    if (isToday(lead["İlk Görüşme Tarihi"])) metToday++;
+  }
+  return { appliedToday, metToday };
 }
 
 function csvCell(value: string): string {

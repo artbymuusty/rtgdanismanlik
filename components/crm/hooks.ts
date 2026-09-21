@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 /**
  * Per-browser UI preference (visible columns, custom saved views, the
@@ -64,6 +64,51 @@ export function useMediaQuery(query: string, initial = true): boolean {
     () => window.matchMedia(query).matches,
     () => initial,
   );
+}
+
+/**
+ * Focus management for a true modal (LeadDrawer, NewLeadDialog): on open,
+ * moves focus into the panel (its own close button, so a screen-reader user
+ * immediately hears the dialog's content and has an obvious way out); on
+ * close, restores focus to whatever had it before the modal opened, so
+ * closing the drawer doesn't strand the user's keyboard focus on <body>.
+ * Also cycles Tab/Shift+Tab within the panel so focus never escapes to the
+ * page behind the backdrop.
+ */
+export function useFocusTrap<T extends HTMLElement>(active: boolean): React.RefObject<T | null> {
+  const containerRef = useRef<T | null>(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!active) return;
+    previouslyFocused.current = document.activeElement as HTMLElement | null;
+
+    const container = containerRef.current;
+    const focusable = () => container?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [];
+    (focusable()[0] ?? container)?.focus();
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Tab") return;
+      const items = Array.from(focusable());
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      previouslyFocused.current?.focus();
+    };
+  }, [active]);
+
+  return containerRef;
 }
 
 /** Fires `onOutside` for a pointerdown outside every ref in `refs`, and

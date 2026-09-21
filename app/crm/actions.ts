@@ -3,7 +3,7 @@
 import { isCrmSessionValid } from "@/lib/crm/auth";
 import { callCrmAction } from "@/lib/crm/apps-script-client";
 import { getCachedList, invalidateCrmCache, setCachedList } from "@/lib/crm/cache";
-import { computeFacets, countByStatus, filterAndSort, runQuery, toCsv, type StatusCounts } from "@/lib/crm/query";
+import { computeFacets, computeTodayCounts, countByStatus, filterAndSort, runQuery, toCsv, type StatusCounts, type TodayCounts } from "@/lib/crm/query";
 import {
   CRM_COLUMNS,
   rowToLead,
@@ -47,6 +47,7 @@ export interface CrmListResponse {
   pageSize: number;
   pageCount: number;
   counts: StatusCounts;
+  today: TodayCounts;
   team: string[];
   statuses: string[];
   facets: Partial<Record<CrmColumn, string[]>>;
@@ -65,6 +66,7 @@ export async function crmListAction(query: CrmQuery, force = false): Promise<Crm
     ok: true,
     ...result,
     counts: countByStatus(loaded.rows),
+    today: computeTodayCounts(loaded.rows),
     team: loaded.team,
     statuses: loaded.statuses,
     facets: computeFacets(loaded.rows),
@@ -185,5 +187,20 @@ export async function crmExportCsvAction(
   const loaded = await loadAllLeads(false);
   if (!loaded.ok) return loaded;
   const rows = filterAndSort(loaded.rows, query);
+  return { ok: true, csv: toCsv(rows, columns), count: rows.length };
+}
+
+/** CSV of exactly the given IDs, in their crm_list order — used by the bulk
+ * selection bar's "CSV Aktar", which exports the current selection rather
+ * than the whole filtered set. */
+export async function crmExportCsvByIdsAction(
+  ids: string[],
+  columns: CrmColumn[] = [...CRM_COLUMNS],
+): Promise<{ ok: true; csv: string; count: number } | Fail> {
+  if (!(await isCrmSessionValid())) return { ok: false, error: "unauthorized" };
+  const loaded = await loadAllLeads(false);
+  if (!loaded.ok) return loaded;
+  const idSet = new Set(ids);
+  const rows = loaded.rows.filter((r) => idSet.has(r.ID));
   return { ok: true, csv: toCsv(rows, columns), count: rows.length };
 }

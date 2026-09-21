@@ -1,11 +1,11 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 import { crmCreateAction } from "@/app/crm/actions";
 import { crmErrorMessage } from "@/lib/crm/error-messages";
 import type { CrmLead } from "@/lib/crm/types";
 import { Button } from "@/components/ui/Button";
-import { useDismiss } from "./hooks";
+import { useDismiss, useFocusTrap } from "./hooks";
 
 interface FormState {
   Ad: string;
@@ -33,7 +33,7 @@ export function NewLeadDialog({ team, onCreated, onClose }: { team: string[]; on
   // stable across re-renders (including a resubmit after a failed request)
   // is exactly what crm_create's idempotency-by-requestId wants.
   const requestId = useId().replace(/[^A-Za-z0-9_-]/g, "") + "-manual-lead";
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useFocusTrap<HTMLDivElement>(true);
   useDismiss([dialogRef], onClose, true);
 
   const set = <K extends keyof FormState>(key: K, value: string) => setForm((prev) => ({ ...prev, [key]: value }));

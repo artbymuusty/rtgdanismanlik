@@ -46,7 +46,7 @@ export function ColumnsMenu({ visible, onChange }: { visible: CrmColumn[]; onCha
         aria-expanded={open}
         className="flex h-9 items-center gap-1.5 rounded-[3px] border border-line px-3 text-sm text-ink transition-colors hover:border-accent"
       >
-        Kolonlar
+        Sütunlar
       </button>
       {open ? (
         <div className="absolute right-0 top-full z-50 mt-2 max-h-[70vh] w-72 overflow-y-auto rounded-[3px] border border-line bg-paper p-3 shadow-lg">
