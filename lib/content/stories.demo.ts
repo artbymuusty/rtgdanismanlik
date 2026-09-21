@@ -36,7 +36,7 @@ export const demoStudentStories: StudentStory[] = [
     quote: "Vize sürecinde tek başıma olmamak büyük fark yarattı.",
     startingPoint: "Üniversite mezunuydu, yüksek lisans için Almanya'yı düşünüyordu.",
     problem: "Kabul aldıktan sonra vize belgelerinde nelerin eksik olduğunu bilmiyordu.",
-    stepsTaken: "Belge listesini birlikte çıkardık, blocked account sürecini ve randevu takibini adım adım yürüttük.",
+    stepsTaken: "Belge listesini birlikte çıkardık, bloke hesap sürecini ve randevu takibini adım adım yürüttük.",
     now: "Berlin'de yüksek lisansına devam ediyor.",
   },
   {
@@ -152,7 +152,7 @@ export const demoStudentStories: StudentStory[] = [
     year: "2021",
     quote: "Vize randevusu için ne kadar erken hazırlanmam gerektiğini bilmiyordum.",
     startingPoint: "Kabul almıştı, vize sürecine yeni giriyordu.",
-    problem: "Blocked account ve randevu sürecinin ne kadar sürdüğü konusunda net bilgisi yoktu.",
+    problem: "Bloke hesap ve randevu sürecinin ne kadar sürdüğü konusunda net bilgisi yoktu.",
     stepsTaken: "Randevu takvimini ve finansal kanıt sürecini birlikte planladık.",
     now: "Heidelberg'de beşinci yılında.",
   },

@@ -2,18 +2,27 @@ import type { Dictionary } from "./types";
 import { siteConfig } from "@/lib/site-config";
 import { errorMessages } from "./error-messages";
 
+/**
+ * Turkish is the site's original language. Editorial conventions used here:
+ *  - Informal "sen" throughout (also in the legal pages, for one consistent voice).
+ *  - "Mentör" / "Mentörlük" (TDK spelling) — never "mentor" / "mentorluk".
+ *  - City names in Turkish form (Münih, not München).
+ *  - Straight apostrophe for suffixes (Almanya'da); “…” for quoted phrases.
+ * Keys that double as data — service `slug`s, tier `id`s, stage/assessment
+ * option `value`s — must stay identical across tr/en/de (they go to the CRM sheet).
+ */
 export const tr: Dictionary = {
   meta: {
     siteName: siteConfig.name,
     defaultTitle: `${siteConfig.name} — Almanya eğitim yolculuğunda yol arkadaşın`,
     titleTemplate: `%s — ${siteConfig.name}`,
     defaultDescription:
-      "Almanya'da eğitim hayatını ilerletmek isteyen herkes için: nereden başlayacağını bilsen de bilmesen de, mevcut durumunu birlikte değerlendirip sana uygun bir sonraki adımı konuşuyoruz.",
+      "Almanya'da eğitim hayatını ilerletmek isteyen herkes için: nereden başlayacağını bilsen de bilmesen de, mevcut durumunu birlikte değerlendirip sana uygun bir sonraki adımı belirliyoruz.",
     tagline: "Almanya eğitim yolculuğunda yol arkadaşın",
     ogEyebrow: "Almanya'da Eğitim",
   },
   common: {
-    skipToContent: "İçeriğe geç",
+    skipToContent: "Ana içeriğe geç",
     mainNavLabel: "Ana menü",
     moreNavLabel: "Diğer sayfalar",
     mobileNavLabel: "Mobil menü",
@@ -24,7 +33,7 @@ export const tr: Dictionary = {
     back: "Geri",
     next: "İleri",
     backHome: "Ana Sayfaya Dön",
-    whatsappWrite: "WhatsApp'tan Yaz",
+    whatsappWrite: "WhatsApp'tan Bize Yaz",
     sample: "Örnek",
     socialLinksLabel: "Sosyal medya bağlantıları",
     sampleAccount: "örnek hesap",
@@ -36,113 +45,115 @@ export const tr: Dictionary = {
       title: "Aradığın sayfayı bulamadık.",
       description: "Bağlantı eskimiş ya da adres yanlış yazılmış olabilir. Ana sayfadan devam edebilirsin.",
       home: "Ana Sayfaya Dön",
-      contact: "Bize Ulaş",
+      contact: "İletişime Geç",
     },
     error: errorMessages.tr,
   },
   stories: {
     homeTitle: "Bu yolculukta yalnız değildiler.",
-    homeSubtitle: "Bu yolculuktan gerçekten geçmiş olanlar.",
+    homeSubtitle: "Bu yoldan gerçekten geçmiş olanların hikâyeleri.",
     viewAll: "Tüm Hikâyeleri Gör",
     pageTitle: "Öğrenci Hikâyeleri",
-    pageIntro: "Her yol aynı başlamıyor. Ama bazen doğru bir konuşma, sonraki adımı görmeyi kolaylaştırıyor.",
+    pageIntro: "Her yol aynı şekilde başlamıyor. Ama bazen doğru bir konuşma, bir sonraki adımı görmeyi kolaylaştırıyor.",
     pageDescription:
-      "Bu yolculuktan gerçekten geçmiş olanların hikâyeleri: nereden başladılar, hangi adımlardan geçtiler, şimdi nerede?",
+      "Bu yoldan gerçekten geçmiş olanların hikâyeleri: nereden başladılar, hangi adımları attılar, şimdi neredeler?",
     empty: "Henüz burada paylaşabileceğimiz bir hikâye yok. İlk hikâyeler geldiğinde bu sayfa güncellenecek.",
     featuredLabel: "Öne Çıkan Hikâye",
     startedFrom: "Nereden başladı?",
-    stepsTaken: "Birlikte hangi adımlardan geçildi?",
+    stepsTaken: "Birlikte hangi adımları attık?",
     nowWhere: "Şimdi nerede?",
     carouselLabel: "Diğer öğrenci hikâyeleri",
     previous: "Önceki öğrenci hikâyesi",
     nextStory: "Sonraki öğrenci hikâyesi",
   },
   mentors: {
-    ourMentors: "Mentorlarımız",
+    ourMentors: "Mentörlerimiz",
     germanyExperience: "Almanya deneyimi",
     education: "Eğitim geçmişi",
     specialty: "Uzmanlık alanı",
   },
   joinUsCta: {
     eyebrow: "Bize Katılın",
-    title: "Almanya'da okudun mu? Sen de mentor olabilirsin.",
+    title: "Almanya'da okudun mu? Sen de mentör olabilirsin.",
     description:
-      "Bu süreçten geçmiş olman, senden sonra gelen birine büyük fark yaratır. Deneyimini paylaşmak istersen seni dinlemek isteriz.",
-    cta: "Mentor Olarak Başvur",
+      "Bu süreci yaşamış olmak, arkandan gelen biri için çok şey değiştirir. Deneyimini paylaşmak istersen seni dinlemekten memnuniyet duyarız.",
+    cta: "Mentör Olarak Başvur",
   },
   legal: {
     updatedLabel: "Son güncelleme",
     privacy: {
       title: "Gizlilik Politikası",
-      description: `${siteConfig.name} gizlilik politikası.`,
+      description:
+        "Hangi kişisel bilgileri neden topladığımızı ve bu bilgileri nasıl sakladığımızı açıklayan gizlilik politikamız.",
       controller: { heading: "Veri sorumlusu" },
       collected: {
         heading: "Hangi bilgileri topluyoruz?",
-        body: "“Yolculuğunu Konuşalım” formunu doldurduğunda ad, soyad, telefon/WhatsApp numarası, e-posta adresi ve paylaştığın eğitim durumu / hedef bilgilerini alıyoruz. İletişim sayfası üzerinden WhatsApp veya e-posta ile ulaştığında, ilgili platformun kendi gizlilik kuralları geçerlidir.",
+        body: "Başvuru formunu doldurduğunda ad, soyad, telefon/WhatsApp numarası ve e-posta adresinin yanı sıra eğitim durumun ve hedeflerinle ilgili paylaştığın bilgileri alıyoruz. Bize İletişim sayfasından WhatsApp veya e-posta yoluyla ulaştığında ise ilgili platformun kendi gizlilik kuralları geçerli olur.",
       },
       purpose: {
         heading: "Bu bilgileri ne için kullanıyoruz?",
-        body: "Yalnızca seninle iletişime geçmek ve görüşmeye hazırlanmak için kullanıyoruz. Bilgilerini üçüncü taraflara satmıyor veya pazarlama amacıyla paylaşmıyoruz.",
+        body: "Bilgilerini yalnızca seninle iletişime geçmek ve görüşmeye hazırlanmak için kullanıyoruz. Üçüncü taraflara satmıyor, pazarlama amacıyla da paylaşmıyoruz.",
       },
       retention: {
         heading: "Verilerin saklanması",
         bodyPrefix: "Bilgilerin, erişimi yalnızca yetkili ekip üyeleriyle sınırlı olan güvenli bir ortamda saklanır.",
-        withEmail: "Bilgilerinin silinmesini istediğinde {email} adresine yazabilirsin.",
-        beforeLink: "Bilgilerinin silinmesini istediğinde ",
+        withEmail: "Bilgilerinin silinmesini istersen {email} adresine yazabilirsin.",
+        beforeLink: "Bilgilerinin silinmesini istersen ",
         linkText: "iletişim sayfasındaki",
         afterLink: " kanallardan bize ulaşabilirsin.",
       },
     },
     kvkk: {
       title: "KVKK Aydınlatma Metni",
-      description: `${siteConfig.name} KVKK aydınlatma metni.`,
+      description:
+        "6698 sayılı KVKK kapsamında kişisel verilerinin nasıl işlendiğini açıklayan aydınlatma metnimiz.",
       subtitle: "6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında",
       controller: { heading: "Veri sorumlusu", mersis: "MERSİS", taxOffice: "V.D." },
       data: {
         heading: "İşlenen kişisel veriler",
-        body: "Ad, soyad, telefon numarası, e-posta adresi, eğitim durumu ve hedeflerine dair paylaştığın bilgiler.",
+        body: "Ad, soyad, telefon numarası, e-posta adresi, eğitim durumu ve hedeflerinle ilgili paylaştığın bilgiler.",
       },
       purpose: {
         heading: "İşleme amacı",
-        body: "Seninle iletişime geçmek, mentorluk görüşmesi hazırlamak ve talep ettiğin bilgilendirmeyi yapmak.",
+        body: "Seninle iletişime geçmek, mentörlük görüşmesine hazırlanmak ve talep ettiğin bilgilendirmeyi yapmak.",
       },
       rights: {
-        heading: "Haklarınız",
-        withEmail: "KVKK madde 11 kapsamındaki haklarını kullanmak için {email} adresine yazabilirsin.",
-        beforeLink: "KVKK madde 11 kapsamındaki haklarını kullanmak için ",
+        heading: "Sahip olduğun haklar",
+        withEmail: "KVKK'nın 11. maddesi kapsamındaki haklarını kullanmak için {email} adresine yazabilirsin.",
+        beforeLink: "KVKK'nın 11. maddesi kapsamındaki haklarını kullanmak için ",
         linkText: "iletişim sayfasındaki",
         afterLink: " kanallardan bize ulaşabilirsin.",
       },
     },
     terms: {
       title: "Kullanım Şartları",
-      description: `${siteConfig.name} kullanım şartları.`,
+      description: "Hizmetlerimizin kapsamını ve siteyi kullanırken geçerli olan şartları açıklayan kullanım şartlarımız.",
       scope: {
         heading: "Hizmetin kapsamı",
-        body: `${siteConfig.name}, Almanya'da eğitim süreci konusunda yönlendirme ve mentorluk desteği sunar. Üniversite kabulü, vize onayı veya başka bir resmi kararın garantisini vermez; bu kararlar ilgili üniversite, konsolosluk ve resmi kurumların yetkisindedir.`,
+        body: `${siteConfig.name}, Almanya'da eğitim süreci konusunda yönlendirme ve mentörlük desteği sunar. Üniversite kabulünü, vize onayını ya da başka bir resmi kararı garanti etmez; bu kararlar ilgili üniversite, konsolosluk ve resmi kurumların yetkisindedir.`,
       },
       liability: {
         heading: "Sorumluluk",
-        body: "Paylaştığımız bilgi ve yönlendirmeler, görüşme anındaki bilgilere dayanır; resmi kurumların güncel gereksinimlerini teyit etmek kullanıcının sorumluluğundadır.",
+        body: "Paylaştığımız bilgi ve yönlendirmeler görüşme sırasındaki bilgilere dayanır; resmi kurumların güncel şartlarını doğrulamak kullanıcının sorumluluğundadır.",
       },
       contact: {
         heading: "İletişim",
-        withEmail: "Sorularınız için {email} adresinden bize ulaşabilirsiniz.",
-        beforeLink: "Sorularınız için ",
+        withEmail: "Sorularını {email} adresine iletebilirsin.",
+        beforeLink: "Sorularını iletmek için ",
         linkText: "iletişim sayfasındaki",
-        afterLink: " kanallardan bize ulaşabilirsiniz.",
+        afterLink: " kanallardan bize ulaşabilirsin.",
       },
     },
   },
   nav: {
     home: "Ana Sayfa",
-    services: "Nasıl Yardımcı Oluyoruz?",
-    mentorship: "Mentorluk",
+    services: "Hizmetler",
+    mentorship: "Mentörlük",
     studentStories: "Öğrenci Hikâyeleri",
     about: "Hakkımızda",
     pricing: "Fiyatlar",
     joinUs: "Bize Katılın",
-    faq: "Sık Sorulanlar",
+    faq: "Sıkça Sorulan Sorular",
     contact: "İletişim",
     more: "Daha Fazla",
     ctaPrimary: "Yolculuğunu Konuşalım",
@@ -152,35 +163,35 @@ export const tr: Dictionary = {
       eyebrow: "Almanya'da Eğitim",
       title: "Almanya'da eğitim yolculuğunda yalnız değilsin.",
       subtitle:
-        "Nereden başlayacağını biliyor olabilirsin, henüz hiçbir şey bilmiyor da olabilirsin. Mevcut durumunu birlikte değerlendiriyor, sana uygun yolu beraber planlıyoruz.",
+        "Nereden başlayacağını biliyor olabilirsin, henüz hiçbir şey bilmiyor da olabilirsin. Durumunu birlikte değerlendiriyor, sana uygun yolu adım adım planlıyoruz.",
       ctaPrimary: "Yolculuğunu Konuşalım",
-      ctaSecondary: "Nasıl Yardımcı Olduğumuzu Anlat",
-      imageAlt: "Berlin Hauptbahnhof, Almanya'ya varışın ilk durağı",
+      ctaSecondary: "Hizmetlerimizi Keşfet",
+      imageAlt: "Berlin Ana Garı (Hauptbahnhof), Almanya yolculuğunun ilk durağı",
     },
     journey: {
       eyebrow: "Yolculuk",
       title: "Nerede olursan ol, Almanya'ya giden yolu birlikte çizelim.",
       description:
-        "Türkiye'nin neresinde olursan ol, Berlin, München, Hamburg ya da Frankfurt — hedefin hangisi olursa olsun bulunduğun yerden başlayabiliriz. Bu rota tek bir uçuş değil, birçok küçük kararın toplamı.",
+        "Türkiye'nin neresinde olursan ol, hedefin Berlin, Münih, Hamburg ya da Frankfurt olsun; bulunduğun yerden başlayabiliriz. Bu yol tek bir uçuştan ibaret değil, birçok küçük kararın toplamı.",
       mapOrigin: "Türkiye",
       mapDestination: "Almanya",
     },
     stageSelector: {
-      title: "Şu anda nerede olursan ol.",
-      subtitle: "Aşağıdakilerden sana en yakın olanı seç, sana uygun cevabı hemen görelim.",
+      title: "Şu anda sürecin neresindesin?",
+      subtitle: "Sana en yakın olanı seç, sana uygun cevabı hemen görelim.",
       stages: [
         {
           id: "researching",
           label: "Henüz araştırıyorum",
           description:
             "Hiçbir şeyin netleşmemiş olması sorun değil. Almanya'da eğitimin nasıl işlediğini, hangi yolların mümkün olduğunu konuşarak başlayabiliriz.",
-          cta: "Araştırmama Yardımcı Olun",
+          cta: "Araştırmamı Birlikte Yapalım",
         },
         {
           id: "choosing",
           label: "Bölüm / üniversite araştırıyorum",
           description:
-            "Seçenekleri tek başına elemeye çalışmak yorucu olabilir. İlgi alanını ve hedefini konuşup birlikte daraltabiliriz.",
+            "Seçenekleri tek başına elemeye çalışmak yorucu olabilir. İlgi alanını ve hedefini konuşup seçenekleri birlikte daraltabiliriz.",
           cta: "Seçeneklerimi Konuşalım",
         },
         {
@@ -194,47 +205,47 @@ export const tr: Dictionary = {
           id: "applied",
           label: "Başvurdum, sonraki adımı bilmiyorum",
           description:
-            "Başvuru gönderdikten sonra bekleme süreci belirsiz gelebilir. Şu an ne yapman gerektiğini birlikte netleştirelim.",
+            "Başvuruyu gönderdikten sonraki bekleme süreci belirsiz hissettirebilir. Şu an ne yapman gerektiğini birlikte netleştirelim.",
           cta: "Sonraki Adımı Bulalım",
         },
         {
           id: "visa",
           label: "Vize sürecindeyim",
           description:
-            "Vize belgeleri ve randevu süreci detaylı takip ister. Neyin eksik olduğunu birlikte kontrol edelim.",
+            "Vize belgeleri ve randevu süreci dikkatli takip gerektirir. Neyin eksik olduğunu birlikte kontrol edelim.",
           cta: "Vize Sürecimi Konuşalım",
         },
         {
           id: "pre-departure",
           label: "Almanya'ya hazırlanıyorum",
           description:
-            "Eğitim kadar günlük hayatı organize etmek de önemli. Konaklamadan ilk haftalara kadar birlikte planlayalım.",
+            "Eğitim kadar günlük hayatı düzene sokmak da önemli. Konaklamadan ilk haftalara kadar her şeyi birlikte planlayalım.",
           cta: "Gidiş Hazırlığımı Konuşalım",
         },
         {
           id: "in-germany",
           label: "Almanya'dayım",
           description:
-            "Buradaki hayatını organize ederken veya eğitimini ilerletirken destek almak istersen buradayız.",
-          cta: "Devam Eden Sürecimi Konuşalım",
+            "Buradaki hayatını düzenlerken ya da eğitimini ilerletirken destek almak istersen yanındayız.",
+          cta: "Sürecimi Birlikte Değerlendirelim",
         },
       ],
       fallback: {
         id: "unsure",
         label: "Emin değilim",
         description:
-          "Hiçbir sorun değil. Nereden başlayacağını bilmiyor olman bizimle konuşman için bir engel değil, durumunu birlikte netleştirelim.",
+          "Hiç sorun değil. Nereden başlayacağını bilmemen bizimle konuşmana engel değil; durumunu birlikte netleştirelim.",
         cta: "Birlikte Netleştirelim",
       },
     },
     services: {
-      title: "Nasıl yardımcı oluyoruz?",
+      title: "Hizmetlerimiz",
       subtitle: "Beş alanda, sürecinin neresinde olursan ol yanındayız.",
       cta: "Tüm Hizmetleri Gör",
     },
     howWeWork: {
       title: "Nasıl çalışıyoruz?",
-      subtitle: "Süreç karmaşık değil, dört adımda birlikte ilerliyoruz.",
+      subtitle: "Süreç karmaşık değil; dört adımda birlikte ilerliyoruz.",
       steps: [
         {
           title: "Seni tanıyoruz",
@@ -242,7 +253,7 @@ export const tr: Dictionary = {
         },
         {
           title: "Görüşüyoruz",
-          description: "Bir mentorla, durumuna özel bir görüşmede seçeneklerini konuşuyoruz.",
+          description: "Bir mentörle, durumuna özel bir görüşmede seçeneklerini konuşuyoruz.",
         },
         {
           title: "Yolu birlikte netleştiriyoruz",
@@ -250,70 +261,70 @@ export const tr: Dictionary = {
         },
         {
           title: "Süreç boyunca yanındayız",
-          description: "Başvurudan vizeye, gerektiğinde Almanya'daki ilk günlere kadar iletişim sürüyor.",
+          description: "Başvurudan vizeye, gerektiğinde Almanya'daki ilk günlere kadar iletişimimiz sürüyor.",
         },
       ],
     },
     mentorship: {
       title: "Yalnız ilerlemek zorunda değilsin.",
       description:
-        "Mentorlarımız bu süreci sadece anlatmıyor, akademik, bürokratik ve günlük hayatla ilgili tarafını da biliyor. Görevleri başvuru yapmak değil, doğru kararı vermeni kolaylaştırmak.",
-      cta: "Mentorluğu Keşfet",
+        "Mentörlerimiz bu süreci yalnızca anlatmıyor; akademik, bürokratik ve günlük hayat tarafını da biliyor. Görevleri senin yerine başvuru yapmak değil, doğru kararı vermeni kolaylaştırmak.",
+      cta: "Mentörlüğü Keşfet",
       approachEyebrow: "Yaklaşımımız",
-      approachQuote: "Görevleri başvuru yapmak değil, doğru kararı vermeni kolaylaştırmak.",
+      approachQuote: "Görevleri senin yerine başvuru yapmak değil, doğru kararı vermeni kolaylaştırmak.",
     },
     visualStory: {
       eyebrow: "Günlük Hayat",
       title: "Almanya'da hayat, başvurudan ibaret değil.",
       description:
         "Bir üniversiteye kabul edilmek yolculuğun önemli bir parçası; asıl hikâye kampüse adım attığında, yeni bir şehirde kendi düzenini kurduğunda başlıyor.",
-      captions: ["Humboldt Üniversitesi", "München", "Bibliotheca Albertina"],
+      captions: ["Humboldt Üniversitesi", "Münih", "Bibliotheca Albertina"],
     },
     humanConnection: {
       eyebrow: "Birlikte Başlayalım",
       metadata: "İlk Adım",
       title: "Önce nerede olduğunu anlayalım.",
       description:
-        "Sana bir şey satmaya çalışmıyoruz; önce durumunu dinliyor, sana uygun olmayan bir yolu 'uygun' gibi göstermeden dürüstçe yol gösteriyoruz.",
+        "Sana bir şey satmaya çalışmıyoruz; önce durumunu dinliyor, sana uygun olmayan bir yolu “uygun” gibi göstermeden dürüstçe yol gösteriyoruz.",
       cta: "Yolculuğunu Konuşalım",
       imageSrc: "/images/cities/frankfurt.jpg",
       imageAlt: "Frankfurt, Almanya",
     },
     faqPreview: {
-      title: "Sık sorulanlar",
+      title: "Sıkça sorulan sorular",
       cta: "Tüm Soruları Gör",
     },
     finalCta: {
-      eyebrow: "Nereden Olursan Ol · Almanya",
+      eyebrow: "Nereden Başlarsan Başla · Almanya",
       title: "Hazırsan konuşalım.",
       description:
-        "Bulunduğun yerden başlayalım. Durumunu birlikte anlayalım, sonrasında sana uygun yolu birlikte çizelim.",
+        "Bulunduğun yerden başlayalım. Durumunu birlikte anlayalım, ardından sana uygun yolu birlikte çizelim.",
       ctaPrimary: "Yolculuğunu Konuşalım",
-      ctaSecondary: "WhatsApp'tan Yaz",
+      ctaSecondary: "WhatsApp'tan Bize Yaz",
     },
   },
   services: {
-    title: "Nasıl yardımcı oluyoruz?",
+    title: "Hizmetlerimiz",
     intro:
-      "Her hizmet, sürecin farklı bir aşamasına karşılık geliyor. Hangisine şu an ihtiyacın olduğundan emin değilsen, birlikte konuşarak da netleştirebiliriz.",
+      "Her hizmet, sürecin farklı bir aşamasına denk geliyor. Şu an hangisine ihtiyacın olduğundan emin değilsen, bunu da birlikte konuşarak netleştirebiliriz.",
     items: [
       {
         slug: "egitim-yonlendirme",
-        title: "Eğitim & Bölüm Yönlendirmesi",
+        title: "Eğitim ve Bölüm Yönlendirmesi",
         shortDescription: "Hedeflerine ve mevcut durumuna göre seçeneklerini birlikte değerlendiriyoruz.",
         problem:
-          "Hangi bölümün, hangi şehrin veya hangi eğitim seviyesinin sana uygun olduğuna karar vermek tek başına zor olabilir.",
+          "Hangi bölümün, hangi şehrin veya hangi eğitim seviyesinin sana uygun olduğuna tek başına karar vermek zor olabilir.",
         help:
           "İlgi alanını, akademik geçmişini ve hedeflerini konuşarak gerçekçi seçenekleri birlikte belirliyoruz.",
         process: [
           "Kısa bir tanışma görüşmesi",
           "İlgi alanı ve akademik durum değerlendirmesi",
-          "Olası bölüm / üniversite yönlerinin konuşulması",
-          "Sonraki adımın netleştirilmesi",
+          "Olası bölüm ve üniversite seçeneklerinin konuşulması",
+          "Bir sonraki adımın netleştirilmesi",
         ],
-        scope: "Bölüm ve şehir/üniversite yönü hakkında yönlendirme; kesin kabul garantisi değil.",
-        forWhom: "Henüz araştırma aşamasında olan ya da seçenekleri daraltmak isteyen herkes için.",
-        nextStep: "Durumunu anlatarak bir görüşme planlayabiliriz.",
+        scope: "Bölüm, şehir ve üniversite seçimi konusunda yönlendirme; kabul garantisi verilmez.",
+        forWhom: "Henüz araştırma aşamasında olan ya da seçeneklerini daraltmak isteyen herkes için.",
+        nextStep: "Durumunu anlat, birlikte bir görüşme planlayalım.",
       },
       {
         slug: "basvuru-sureci",
@@ -322,103 +333,103 @@ export const tr: Dictionary = {
         problem:
           "Başvuru gereksinimleri üniversiteden üniversiteye değişiyor; hangi belgenin ne zaman gerektiğini takip etmek kolay değil.",
         help:
-          "Başvuracağın programların gereksinimlerini netleştirip, belge hazırlığını ve zaman çizelgesini birlikte organize ediyoruz.",
+          "Başvuracağın programların gereksinimlerini netleştirip belge hazırlığını ve zaman çizelgesini birlikte düzenliyoruz.",
         process: [
-          "Hedef program(lar)ın gereksinimlerinin çıkarılması",
+          "Hedef programların gereksinimlerinin çıkarılması",
           "Belge listesinin netleştirilmesi",
           "Hazırlık takviminin oluşturulması",
           "Başvuru öncesi son kontrol",
         ],
-        scope: "Süreç organizasyonu ve rehberlik; başvurunun üniversite tarafından değerlendirilmesi bizim kontrolümüzde değil.",
+        scope: "Süreç planlaması ve rehberlik; başvurunun üniversite tarafından değerlendirilmesi bizim kontrolümüzde değildir.",
         forWhom: "Hedefi netleşmiş, başvuruya hazırlanan ya da başvuru sürecinde olan öğrenciler için.",
-        nextStep: "Hangi program(lar)ı düşündüğünü paylaşarak başlayabiliriz.",
+        nextStep: "Hangi programları düşündüğünü paylaşarak başlayalım.",
       },
       {
         slug: "vize-hazirlik",
         title: "Vizeye Hazırlık",
-        shortDescription: "Belgeler ve süreç konusunda hazırlığını sistemli şekilde yapmana yardımcı oluyoruz.",
+        shortDescription: "Belgeler ve süreç konusunda hazırlığını düzenli biçimde yapmana yardımcı oluyoruz.",
         problem:
-          "Vize süreci belge yoğunluğu ve randevu takibi gerektiriyor; küçük bir eksik süreci geciktirebiliyor.",
+          "Vize süreci yoğun bir belge trafiği ve randevu takibi gerektiriyor; küçük bir eksik süreci geciktirebiliyor.",
         help:
-          "Gerekli belgeleri, finansal kanıt gereksinimlerini ve randevu sürecini adım adım birlikte takip ediyoruz.",
+          "Gerekli belgeleri, finansal yeterlilik kanıtı şartlarını ve randevu sürecini adım adım birlikte takip ediyoruz.",
         process: [
           "Vize türüne göre belge listesinin çıkarılması",
-          "Finansal kanıt / blocked account sürecinin konuşulması",
+          "Finansal yeterlilik kanıtı ve bloke hesap (Sperrkonto) sürecinin konuşulması",
           "Randevu ve başvuru takibi",
           "Son kontrol",
         ],
-        scope: "Hazırlık ve organizasyon desteği; vize kararı ilgili konsolosluğun yetkisindedir, garanti edilemez.",
+        scope: "Hazırlık ve planlama desteği; vize kararı ilgili konsolosluğun yetkisindedir ve garanti edilemez.",
         forWhom: "Kabul almış ve vize sürecine girecek ya da girmiş öğrenciler için.",
-        nextStep: "Hangi aşamada olduğunu belirterek süreci birlikte netleştirelim.",
+        nextStep: "Hangi aşamada olduğunu anlat, süreci birlikte netleştirelim.",
       },
       {
         slug: "almanyaya-hazirlik",
         title: "Almanya'ya Hazırlık",
         shortDescription: "Eğitim kadar önemli olan yeni hayatına hazırlanırken yanında oluyoruz.",
         problem:
-          "Konaklama, kayıt işlemleri, banka hesabı, sigorta gibi pratik konular gitmeden önce netleşmediğinde ilk haftalar zorlaşabiliyor.",
+          "Konaklama, kayıt işlemleri, banka hesabı ve sigorta gibi pratik konular gitmeden önce netleşmezse ilk haftalar zorlaşabiliyor.",
         help:
-          "Gitmeden önce ve ilk haftalarda karşılaşacağın pratik konuları birlikte planlıyoruz.",
+          "Gitmeden önce ve ilk haftalarda karşına çıkacak pratik konuları birlikte planlıyoruz.",
         process: [
-          "Konaklama araştırması yönlendirmesi",
+          "Konaklama arayışında yönlendirme",
           "Kayıt (Anmeldung) ve banka hesabı süreci hakkında bilgilendirme",
           "Sağlık sigortası konusunda yönlendirme",
           "İlk hafta kontrol listesi",
         ],
-        scope: "Bilgilendirme ve organizasyon desteği; konaklama/sözleşme gibi işlemler öğrenci tarafından yürütülür.",
+        scope: "Bilgilendirme ve planlama desteği; konaklama ve sözleşme gibi işlemleri öğrenci kendisi yürütür.",
         forWhom: "Vize süreci ilerleyen ya da gitmeye hazırlanan öğrenciler için.",
-        nextStep: "Gidiş tarihini paylaşarak hazırlığı birlikte planlayalım.",
+        nextStep: "Gidiş tarihini paylaş, hazırlığı birlikte planlayalım.",
       },
       {
         slug: "mentorluk",
-        title: "Mentorluk",
-        shortDescription: "Sadece başvuruya kadar değil, yolculuğun boyunca deneyim ve yönlendirme desteği sunuyoruz.",
+        title: "Mentörlük",
+        shortDescription: "Yalnızca başvuruya kadar değil, yolculuğun boyunca deneyim ve yönlendirme desteği sunuyoruz.",
         problem:
           "Süreç uzun ve bazen belirsiz; tek seferlik bir danışmanlık görüşmesi her sorunun cevabını vermeyebilir.",
         help:
-          "Bir mentorla düzenli iletişimde kalarak, süreç ilerledikçe ortaya çıkan sorulara zamanında cevap buluyorsun.",
+          "Bir mentörle düzenli iletişimde kalarak süreç ilerledikçe ortaya çıkan sorulara zamanında cevap buluyorsun.",
         process: [
-          "Mentor eşleştirmesi",
+          "Mentör eşleştirmesi",
           "Düzenli iletişim ve ilerleme takibi",
-          "Sorular oldukça yönlendirme",
+          "Sorular çıktıkça yönlendirme",
           "Hedefe göre sürecin güncellenmesi",
         ],
-        scope: "Yönlendirme ve deneyim paylaşımı; hukuki/resmi kararlar öğrencinin ve ilgili kurumların sorumluluğundadır.",
-        forWhom: "Sürecin herhangi bir aşamasında, düzenli destek isteyen herkes için.",
-        nextStep: "Mentorluğun sana nasıl uyabileceğini konuşalım.",
+        scope: "Yönlendirme ve deneyim paylaşımı; hukuki ve resmi kararlar öğrencinin ve ilgili kurumların sorumluluğundadır.",
+        forWhom: "Sürecin herhangi bir aşamasında düzenli destek isteyen herkes için.",
+        nextStep: "Mentörlüğün sana nasıl uyabileceğini konuşalım.",
       },
     ],
     labels: {
-      problem: "Problem",
-      help: "Nasıl yardımcı oluyoruz",
+      problem: "Sorun",
+      help: "Nasıl destek oluyoruz",
       forWhom: "Kimler için",
       process: "Süreç",
       scope: "Kapsam",
     },
   },
   mentorship: {
-    title: "Mentor burada sadece başvuru yapan kişi değil.",
+    title: "Mentör, senin yerine başvuru yapan kişi değil.",
     intro:
-      "Bu sürecin akademik, bürokratik ve günlük yaşamla ilgili tarafını bilen insanlarla çalışıyorsun. Mentorun görevi seni yönlendirmek, doğru kararları vermeni kolaylaştırmak ve süreç boyunca yanında olmak.",
+      "Bu sürecin akademik, bürokratik ve günlük yaşam tarafını bilen insanlarla çalışıyorsun. Mentörünün görevi seni yönlendirmek, doğru kararları vermeni kolaylaştırmak ve süreç boyunca yanında olmak.",
     sections: [
       {
-        heading: "Mentor neden var?",
-        body: "Almanya'da eğitim süreci tek bir karardan ibaret değil. Bölüm seçiminden başvuruya, vizeden ilk haftalara kadar birçok küçük karar art arda geliyor; bir mentor bu kararları tek başına vermek zorunda kalmamanı sağlıyor.",
+        heading: "Mentörlüğe neden ihtiyaç var?",
+        body: "Almanya'da eğitim süreci tek bir karardan ibaret değil. Bölüm seçiminden başvuruya, vizeden ilk haftalara kadar birçok küçük karar art arda geliyor; mentör, bu kararların hepsini tek başına vermek zorunda kalmamanı sağlıyor.",
       },
       {
-        heading: "Ne zaman bir mentora ihtiyaç duyarsın?",
-        body: "Genelde 'şu an ne yapmam gerekiyor?' sorusuna net bir cevap bulamadığın her an. Bu, sürecin en başında da olabilir, başvuru ortasında da, vize aşamasında da.",
+        heading: "Ne zaman bir mentöre ihtiyaç duyarsın?",
+        body: "Genellikle “şu an ne yapmam gerekiyor?” sorusuna net bir cevap bulamadığın her an. Bu, sürecin en başında da olabilir, başvurunun ortasında da, vize aşamasında da.",
       },
       {
-        heading: "Mentor ne yapıyor?",
-        body: "Durumunu dinler, seçeneklerini birlikte değerlendirir, süreç boyunca hangi adımın ne zaman geldiğini takip eder ve sorularına zamanında cevap verir. Kararı sen verirsin, mentor bu kararı daha bilinçli vermeni sağlar.",
+        heading: "Mentör ne yapıyor?",
+        body: "Durumunu dinler, seçeneklerini birlikte değerlendirir, süreç boyunca hangi adımın ne zaman geldiğini takip eder ve sorularına zamanında cevap verir. Kararı sen verirsin; mentör bu kararı daha bilinçli vermene yardımcı olur.",
       },
       {
         heading: "Süreç nasıl ilerliyor?",
-        body: "Bir tanışma görüşmesiyle başlar. Oradan sonra ihtiyacına göre düzenli aralıklarla iletişimde kalırsınız; bu bazen haftalık bir kontrol, bazen sadece kritik bir aşamada tek bir görüşme olabilir.",
+        body: "Bir tanışma görüşmesiyle başlar. Ardından ihtiyacına göre düzenli aralıklarla iletişimde kalırsınız; bu bazen haftalık bir kontrol, bazen yalnızca kritik bir aşamadaki tek bir görüşme olur.",
       },
     ],
-    processTitle: "Mentorlukla ilerleyiş",
+    processTitle: "Mentörlük süreci",
     process: [
       { title: "Tanışma görüşmesi", description: "Durumunu ve hedefini birlikte konuşuyoruz." },
       { title: "Yol haritası", description: "Sana uygun olabilecek adımları ve zamanlamayı netleştiriyoruz." },
@@ -426,8 +437,8 @@ export const tr: Dictionary = {
       { title: "Kritik aşamalarda destek", description: "Başvuru, vize ve gidiş gibi kritik anlarda yanındayız." },
     ],
     cta: {
-      title: "Mentorluğun sana nasıl uyabileceğini konuşalım.",
-      description: "Kısa bir görüşmeyle başlayabiliriz, henüz hiçbir şey netleşmemiş olsa bile.",
+      title: "Mentörlüğün sana nasıl uyabileceğini konuşalım.",
+      description: "Henüz hiçbir şey netleşmemiş olsa bile kısa bir görüşmeyle başlayabiliriz.",
       label: "Yolculuğunu Konuşalım",
     },
   },
@@ -436,40 +447,40 @@ export const tr: Dictionary = {
     imageSrc: "/images/cities/cologne.jpg",
     imageAlt: "Köln, Almanya",
     intro:
-      "Bu sürecin nasıl hissettirdiğini bilen insanlar tarafından oluşturulan bir sistemiz.",
+      "Biz, bu sürecin nasıl hissettirdiğini bilen insanların kurduğu bir yapıyız.",
     sections: [
       {
         heading: "Neden varız?",
-        body: "Almanya'da eğitim süreci doğru bilgiyle ilerlediğinde ulaşılabilir bir hedef. Ama dağınık bilgi, belirsiz adımlar ve yalnız ilerleme hissi bu süreci gereğinden zor gösteriyor. Biz bu boşluğu doldurmak için buradayız.",
+        body: "Almanya'da eğitim süreci doğru bilgiyle ilerlediğinde ulaşılabilir bir hedef. Ama dağınık bilgi, belirsiz adımlar ve yalnız ilerleme hissi bu süreci olduğundan zor gösteriyor. Biz bu boşluğu doldurmak için buradayız.",
       },
       {
         heading: "Nasıl yaklaşıyoruz?",
-        body: "Yargılamadan. Geç başlamış, notları düşük, dili henüz yeterli değil ya da hedefi belirsiz olabilirsin; bunların hiçbiri konuşmaya başlamak için bir engel değil. Mevcut durumundan ilerleyebileceğin seçenekleri birlikte değerlendiriyoruz.",
+        body: "Yargılamadan. Geç başlamış olabilirsin, notların düşük olabilir, dilin henüz yeterli olmayabilir ya da hedefin belirsiz olabilir; bunların hiçbiri konuşmaya başlamana engel değil. Bulunduğun yerden ilerleyebileceğin seçenekleri birlikte değerlendiriyoruz.",
       },
       {
         heading: "Öğrenci için ne değişiyor?",
-        body: "Çoğu kaynak ya çok genel ya da çok teknik; nerede olduğunu bilmeden bir bilgi yığınıyla karşılaşıyorsun. Biz önce durumunu anlamayı, sonra doğru bilgiyi doğru zamanda vermeyi önceliklendiriyoruz — tek başına elemen gereken bir yığın yerine, senin durumuna konuşulmuş bir yol.",
+        body: "Çoğu kaynak ya çok genel ya da çok teknik; nerede olduğunu bilmeden bir bilgi yığınıyla karşılaşıyorsun. Biz önce durumunu anlamaya, sonra doğru bilgiyi doğru zamanda vermeye öncelik veriyoruz: tek başına elemen gereken bir yığın yerine, senin durumuna göre konuşulmuş bir yol.",
       },
       {
         heading: "Almanya'da yolculuk nasıl ilerliyor?",
-        body: "Önce dinliyoruz, sonra yönlendiriyoruz. Süreç boyunca hangi adımın ne zaman geldiğini takip ediyor, sorularına zamanında cevap veriyoruz. Söz verirken gerçekçi kalıyoruz; uygun olmayan bir yolu 'uygun' gibi göstermiyoruz.",
+        body: "Önce dinliyoruz, sonra yönlendiriyoruz. Süreç boyunca hangi adımın ne zaman geldiğini takip ediyor, sorularına zamanında cevap veriyoruz. Söz verirken gerçekçi kalıyoruz; uygun olmayan bir yolu “uygun” gibi göstermiyoruz.",
       },
       {
         heading: "Bundan sonra?",
-        body: "Bu platform büyüdükçe gerçek öğrenci hikâyeleri ve gerçek mentor profilleriyle zenginleşecek. Şu an önceliğimiz aynı kalıyor: her görüşmede aynı dikkat ve dürüstlükle yanında olmak — sayı büyüse de yaklaşımımız değişmeyecek.",
+        body: "Bu platform büyüdükçe gerçek öğrenci hikâyeleri ve gerçek mentör profilleriyle zenginleşecek. Önceliğimiz de değişmeyecek: her görüşmede aynı dikkat ve dürüstlükle yanında olmak. Sayımız artsa da yaklaşımımız aynı kalacak.",
       },
     ],
   },
   pricing: {
     title: "Fiyatlandırma",
     intro:
-      "Sabit bir fiyat listesi yayınlamıyoruz, çünkü ihtiyacın senin durumuna göre değişiyor. Bunun yerine önce durumunu anlıyor, sonra sana uygun kapsamı ve ücreti birlikte netleştiriyoruz.",
+      "Sabit bir fiyat listesi yayınlamıyoruz, çünkü ihtiyacın durumuna göre değişiyor. Bunun yerine önce durumunu anlıyor, sonra sana uygun kapsamı ve ücreti birlikte netleştiriyoruz.",
     intake: {
       eyebrow: "İlk Adım",
       title: "İlk görüşme",
       description:
         "Her şey kısa bir tanışma görüşmesiyle başlıyor. Bu görüşmede seni ve hedefini dinliyor, aşağıdaki üç kapsamdan hangisinin sana uygun olabileceğini birlikte konuşuyoruz. Hiçbir şeye karar vermiş olman gerekmiyor.",
-      cta: "İlk Görüşmeyi Başlat",
+      cta: "İlk Görüşmeyi Planla",
     },
     tiersTitle: "Sana uygun kapsam",
     tiersSubtitle:
@@ -480,7 +491,7 @@ export const tr: Dictionary = {
         name: "Yol Haritası",
         tagline: "Tek seferlik, net bir yön",
         description:
-          "Nereden başlayacağını ya da başvurunu nasıl organize edeceğini netleştirmek istiyorsan, bu kapsam sana yeterli olabilir.",
+          "Nereden başlayacağını ya da başvurunu nasıl düzenleyeceğini netleştirmek istiyorsan bu kapsam sana yeterli olabilir.",
         priceLabel: "Görüşmede birlikte netleştiriyoruz",
         includes: ["egitim-yonlendirme", "basvuru-sureci"],
         idealFor: "Henüz araştırma ya da başvuru hazırlığı aşamasında olanlar için.",
@@ -488,13 +499,13 @@ export const tr: Dictionary = {
       },
       {
         id: "birebir-mentorluk",
-        name: "Birebir Mentorluk",
+        name: "Birebir Mentörlük",
         tagline: "Süreç boyunca düzenli destek",
         description:
-          "Tek bir görüşme yetmiyorsa, bir mentorla düzenli iletişimde kalarak süreç ilerledikçe çıkan sorulara zamanında cevap buluyorsun.",
+          "Tek bir görüşme yetmiyorsa bir mentörle düzenli iletişimde kalarak süreç ilerledikçe çıkan sorulara zamanında cevap buluyorsun.",
         priceLabel: "Sürece göre birlikte belirliyoruz",
         includes: ["egitim-yonlendirme", "basvuru-sureci", "mentorluk"],
-        idealFor: "Sadece bir kez değil, süreç boyunca yanında birini isteyenler için.",
+        idealFor: "Yalnızca bir kez değil, süreç boyunca yanında birini isteyenler için.",
         cta: "Detayları Konuşalım",
       },
       {
@@ -510,84 +521,84 @@ export const tr: Dictionary = {
       },
     ],
     comparisonTitle: "Kapsamları karşılaştır",
-    comparisonNote: "Her kapsamın hangi hizmetleri içerdiğini aşağıda görebilirsin. Detaylar için ilgili hizmeti incele.",
+    comparisonNote: "Hangi kapsamın hangi hizmetleri içerdiğini aşağıda görebilirsin. Ayrıntılar için ilgili hizmete göz atabilirsin.",
     honestyNote:
-      "Burada net bir sayı görmemenin nedeni gizlilik değil, dürüstlük: ihtiyacın netleşmeden bir rakam vermek gerçekçi olmazdı. Görüşmede konuştuğumuz kapsam dışında sürpriz bir ücretle karşılaşmazsın.",
+      "Burada net bir rakam görmemenin nedeni gizlilik değil, dürüstlük: ihtiyacın netleşmeden bir rakam vermek gerçekçi olmazdı. Görüşmede konuştuğumuz kapsamın dışında sürpriz bir ücretle karşılaşmazsın.",
     included: "Bu kapsamda",
     tableService: "Hizmet",
     tableFee: "Ücret",
     includedAria: "Dahil",
     cta: {
       title: "Hangi kapsamın sana uygun olduğunu birlikte konuşalım.",
-      description: "Karar vermiş olman gerekmiyor. Durumunu anlat, uygun kapsamı birlikte bulalım.",
+      description: "Karar vermiş olman gerekmiyor. Durumunu anlat, sana uygun kapsamı birlikte bulalım.",
       label: "Yolculuğunu Konuşalım",
     },
   },
   faq: {
-    title: "Sık sorulanlar",
-    intro: "Aklındaki soruların bir kısmının cevabı burada olabilir. Bulamazsan, doğrudan sorabilirsin.",
+    title: "Sıkça sorulan sorular",
+    intro: "Aklındaki soruların bir kısmının cevabı burada olabilir. Bulamazsan doğrudan bize sorabilirsin.",
     items: [
       {
         question: "Nereden başlamam gerektiğini bilmiyorum, yine de iletişime geçebilir miyim?",
         answer:
-          "Evet. Nereden başlayacağını bilmiyor olman bizimle konuşman için bir engel değil.",
+          "Evet. Nereden başlayacağını bilmemen bizimle konuşmana engel değil.",
         category: "Genel",
       },
       {
         question: "Almanya'da üniversite ücretsiz mi?",
         answer:
-          "Çoğu devlet üniversitesinde okul harcı yok, ancak dönemlik bir katkı payı (Semesterbeitrag) genelde bulunuyor. Tam tutar üniversiteye ve eyalete göre değişiyor, durumuna göre birlikte netleştirebiliriz.",
+          "Çoğu devlet üniversitesinde öğrenim ücreti alınmıyor; ancak genellikle dönemlik bir katkı payı (Semesterbeitrag) ödeniyor. Tutar üniversiteye ve eyalete göre değişiyor; durumuna göre birlikte netleştirebiliriz.",
         category: "Maliyet",
       },
       {
-        question: "Hangi seviyede Almanca gerekir?",
+        question: "Hangi Almanca seviyesi gerekiyor?",
         answer:
-          "Almanca öğretim yapan programlarda genelde B2–C1 seviyesi isteniyor; İngilizce öğretim yapan programlarda dil şartı farklı olabiliyor. Hangi seviyede olduğunu paylaşırsan hangi yolların açık olduğunu birlikte değerlendiririz.",
+          "Almanca eğitim veren programlarda genellikle B2–C1 seviyesi isteniyor; İngilizce eğitim veren programlarda dil şartı farklı olabiliyor. Seviyeni paylaşırsan hangi yolların açık olduğunu birlikte değerlendirebiliriz.",
         category: "Almanya'da Eğitim",
       },
       {
         question: "Hangi bölümleri okuyabilirim?",
         answer:
-          "Akademik geçmişine ve ilgi alanına bağlı olarak birçok bölüm mümkün olabilir. Kesin bir liste vermek yerine, durumunu birlikte değerlendirip gerçekçi seçenekleri konuşmayı tercih ediyoruz.",
+          "Akademik geçmişine ve ilgi alanına bağlı olarak birçok bölüm mümkün olabilir. Kesin bir liste vermek yerine durumunu birlikte değerlendirip gerçekçi seçenekleri konuşmayı tercih ediyoruz.",
         category: "Almanya'da Eğitim",
       },
       {
         question: "YKS gerekiyor mu?",
         answer:
-          "Bu, hangi programa ve hangi yolla başvuracağına göre değişiyor. Bazı yollarda gerekmiyor, bazılarında akademik geçmişin farklı şekilde değerlendiriliyor. Durumunu konuşarak netleştirelim.",
-        category: "Başvuru & Vize Süreci",
+          "Bu, hangi programa ve hangi yolla başvuracağına göre değişiyor. Bazı yollarda gerekmiyor, bazılarında akademik geçmişin farklı biçimde değerlendiriliyor. Durumunu konuşarak netleştirelim.",
+        category: "Başvuru ve Vize Süreci",
       },
       {
         question: "Başvuru ne kadar sürer?",
         answer:
           "Üniversiteye ve programa göre değişiyor; bazı süreçler birkaç hafta, bazıları birkaç ay sürebiliyor. Hedef program netleştikçe sana özel bir zaman çizelgesi çıkarabiliriz.",
-        category: "Başvuru & Vize Süreci",
+        category: "Başvuru ve Vize Süreci",
       },
       {
         question: "Vize konusunda yardımcı oluyor musunuz?",
         answer:
           "Evet. Belge hazırlığı, randevu takibi ve süreç boyunca ortaya çıkan sorular konusunda yanındayız; vize kararının kendisi ilgili konsolosluğun yetkisinde olduğu için bunu garanti edemeyiz.",
-        category: "Başvuru & Vize Süreci",
+        category: "Başvuru ve Vize Süreci",
       },
       {
         question: "Almanya'ya gittikten sonra destek devam ediyor mu?",
         answer:
-          "Evet. Kayıt işlemleri, ilk haftalar ve eğitim sürecinde ihtiyaç duyduğun konularda iletişimde kalabiliyoruz.",
-        category: "Mentorluk & Destek",
+          "Evet. Kayıt işlemlerinde, ilk haftalarda ve eğitim sürecinde ihtiyaç duyduğun konularda iletişimde kalabiliyoruz.",
+        category: "Mentörlük ve Destek",
       },
     ],
   },
   contact: {
     title: "İletişim",
-    intro: "Sana en uygun kanaldan ulaşabilirsin, hepsi aynı yere çıkıyor: bir insanla konuşmak.",
+    intro: "Sana en uygun kanaldan bize ulaşabilirsin; hepsi aynı yere çıkıyor: bir insanla konuşmak.",
     whatsapp: {
       title: "WhatsApp",
-      description: "Hızlı bir sorun mu var? Doğrudan yazabilirsin.",
-      cta: "WhatsApp'tan Yaz",
+      description: "Hızlı bir sorun mu var? Doğrudan bize yazabilirsin.",
+      cta: "WhatsApp'tan Bize Yaz",
     },
     email: {
       title: "E-posta",
-      description: "Detaylı yazmayı tercih ediyorsan.",
+      description: "Ayrıntılı yazmayı tercih ediyorsan.",
       cta: "E-posta Gönder",
     },
     formCta: {
@@ -602,24 +613,24 @@ export const tr: Dictionary = {
     eyebrow: "Bize Katılın",
     applyEyebrow: "Başvuru",
     title: "Bir zamanlar sen de nereden başlayacağını bilmiyordun.",
-    intro: "Almanya'da eğitim deneyimin varsa ve bu yolda birine yol arkadaşı olmak istiyorsan, seni dinlemek isteriz.",
+    intro: "Almanya'da eğitim deneyimin varsa ve bu yolda birine yol arkadaşı olmak istiyorsan, seni dinlemekten memnuniyet duyarız.",
     imageCaption: "Deneyimini paylaş",
     sections: [
       {
-        heading: "Neden mentor olabilirsin?",
-        body: "Almanya'da okudun ya da hâlâ okuyorsun. Başvuru, vize, yeni bir şehirde hayata tutunma gibi süreçlerin nasıl hissettirdiğini biliyorsun. Bu deneyim, senden sonra gelen birine büyük fark yaratır.",
+        heading: "Neden mentör olabilirsin?",
+        body: "Almanya'da okudun ya da hâlâ okuyorsun. Başvurunun, vizenin ve yeni bir şehirde hayata tutunmanın nasıl bir his olduğunu biliyorsun. Bu deneyim, arkandan gelen biri için çok şey değiştirir.",
       },
       {
         heading: "Kimleri arıyoruz?",
-        body: "Belirli bir unvan aramıyoruz. Aradığımız şey: sürecin içinden gerçekten geçmiş olmak ve bir öğrencinin sorularına zaman ayırmaya istekli olmak.",
+        body: "Belirli bir unvan aramıyoruz. Aradığımız şey, süreci gerçekten yaşamış olmak ve bir öğrencinin sorularına zaman ayırmaya istekli olmak.",
       },
       {
-        heading: "Mentor olarak ne yaparsın?",
+        heading: "Mentör olarak ne yaparsın?",
         body: "Öğrencinin durumunu dinler, sorularını cevaplarsın; bazen tek bir görüşme, bazen süreç boyunca düzenli bir iletişim olur. Ne kadar zaman ayırabileceğini birlikte konuşuruz.",
       },
       {
         heading: "Nasıl çalışıyoruz?",
-        body: "Başvurundan sonra kısa bir tanışma görüşmesi yapıyoruz. Uygun görürsek, sana uygun bir öğrenciyle veya süreçle eşleştiriyoruz.",
+        body: "Başvurundan sonra kısa bir tanışma görüşmesi yapıyoruz. Uygun görürsek seni, sana uygun bir öğrenciyle ya da süreçle eşleştiriyoruz.",
       },
     ],
     formTitle: "Başvuru formu",
@@ -629,30 +640,30 @@ export const tr: Dictionary = {
       lastName: "Soyad",
       phone: "Telefon / WhatsApp",
       email: "E-posta",
-      germanyExperience: "Almanya deneyimin nedir?",
-      germanyExperiencePlaceholder: "Hangi şehir, hangi üniversite/program, ne zaman?",
-      motivation: "Neden mentor olmak istiyorsun?",
+      germanyExperience: "Almanya'daki deneyimin nedir?",
+      germanyExperiencePlaceholder: "Hangi şehir, hangi üniversite veya program, ne zaman?",
+      motivation: "Neden mentör olmak istiyorsun?",
       motivationPlaceholder: "Birkaç cümleyle anlatman yeterli.",
       message: "Eklemek istediğin bir şey var mı?",
-      messagePlaceholder: "İstersen buraya yazabilirsin (opsiyonel).",
+      messagePlaceholder: "İstersen buraya yazabilirsin (isteğe bağlı).",
     },
-    submit: { label: "Başvuruyu Gönder", loading: "Gönderiliyor..." },
+    submit: { label: "Başvurunu Gönder", loading: "Gönderiliyor..." },
     success: {
       title: "Teşekkürler.",
       description: "Başvurunu aldık. İnceledikten sonra seninle iletişime geçeceğiz.",
       backHome: "Ana Sayfaya Dön",
     },
-    error: { description: "Formu gönderirken bir sorun oluştu. Lütfen tekrar dene." },
+    error: { description: "Formu gönderirken bir sorun oluştu. Lütfen biraz sonra tekrar dene." },
   },
   assessment: {
-    contactValidation: "Lütfen ad, soyad, telefon, e-posta ve tercih ettiğin iletişim yöntemini doldur.",
+    contactValidation: "Lütfen ad, soyad, telefon, e-posta ve tercih ettiğin iletişim yöntemini eksiksiz doldur.",
     metaTitle: "Seni Biraz Tanıyalım",
-    metaDescription: "Birkaç kısa soruyla mevcut durumunu anlayalım, sana uygun bir görüşme hazırlayalım.",
+    metaDescription: "Birkaç kısa soruyla durumunu anlayalım, sana uygun bir görüşme hazırlayalım.",
     intro: {
       eyebrow: "Kişisel Yol Haritası",
       title: "Seni biraz tanıyalım.",
       description:
-        "Sana daha doğru yardımcı olabilmemiz için birkaç kısa soru soracağız. Formu doldurman birkaç dakikadan kısa sürer.",
+        "Sana daha doğru yardımcı olabilmemiz için birkaç kısa soru soracağız. Formu doldurman birkaç dakikadan az sürer.",
       startCta: "Başlayalım",
     },
     steps: [
@@ -680,7 +691,7 @@ export const tr: Dictionary = {
           { value: "high-school-graduate", label: "Lise mezunuyum" },
           { value: "university-student", label: "Üniversite öğrencisiyim" },
           { value: "university-graduate", label: "Üniversite mezunuyum" },
-          { value: "considering-masters", label: "Yüksek lisans düşünüyorum" },
+          { value: "considering-masters", label: "Yüksek lisans yapmayı düşünüyorum" },
           { value: "other", label: "Diğer" },
         ],
       },
@@ -688,10 +699,10 @@ export const tr: Dictionary = {
         id: "interestArea",
         question: "Hangi alana ilgi duyuyorsun?",
         type: "single",
-        helper: "Henüz net değilse 'Henüz bilmiyorum' seçebilirsin.",
+        helper: "Henüz net değilse “Henüz bilmiyorum” seçeneğini seçebilirsin.",
         options: [
           { value: "engineering", label: "Mühendislik" },
-          { value: "computer-it", label: "Bilgisayar / IT" },
+          { value: "computer-it", label: "Bilgisayar / Bilişim (IT)" },
           { value: "business-economics", label: "İşletme / Ekonomi" },
           { value: "health", label: "Sağlık" },
           { value: "social-sciences", label: "Sosyal bilimler" },
@@ -702,7 +713,7 @@ export const tr: Dictionary = {
       },
       {
         id: "germanLevel",
-        question: "Almanca seviyen?",
+        question: "Almanca seviyen nedir?",
         type: "single",
         options: [
           { value: "undisclosed", label: "Belirtmek istemiyorum" },
@@ -718,7 +729,7 @@ export const tr: Dictionary = {
       },
       {
         id: "englishLevel",
-        question: "İngilizce seviyen?",
+        question: "İngilizce seviyen nedir?",
         type: "single",
         options: [
           { value: "undisclosed", label: "Belirtmek istemiyorum" },
@@ -762,7 +773,7 @@ export const tr: Dictionary = {
         id: "background",
         question: "Kendinden, eğitiminden veya deneyimlerinden biraz bahset.",
         helper:
-          "Akademik geçmişin, öne çıkan deneyimlerin ya da danışmanlıktan ne beklediğin hakkında birkaç cümle yazman, danışmanının seni görüşme öncesinde tanımasına yardımcı olur.",
+          "Akademik geçmişin, öne çıkan deneyimlerin ya da danışmanlıktan ne beklediğin hakkında birkaç cümle yazman, danışmanının seni görüşmeden önce tanımasına yardımcı olur.",
         type: "text",
         placeholder: "Birkaç cümle yeterli.",
       },
@@ -770,7 +781,7 @@ export const tr: Dictionary = {
         id: "message",
         question: "Bize iletmek istediğin başka bir soru veya konu var mı?",
         type: "text",
-        placeholder: "İstersen buraya yazabilirsin (opsiyonel).",
+        placeholder: "İstersen buraya yazabilirsin (isteğe bağlı).",
         optional: true,
       },
       {
@@ -793,7 +804,7 @@ export const tr: Dictionary = {
     referralOtherLabel: "Diğer (kısaca belirt)",
     contactStep: {
       title: "Sana nasıl ulaşalım?",
-      description: "Son adım. Bu bilgilerle görüşmene hazırlıklı geleceğiz.",
+      description: "Son adım. Bu bilgilerle görüşmemize hazırlıklı geleceğiz.",
       fields: {
         firstName: "Ad",
         lastName: "Soyad",
@@ -810,13 +821,13 @@ export const tr: Dictionary = {
     success: {
       title: "Teşekkürler.",
       description:
-        "Bilgilerini aldık. Ekibimiz paylaştığın ön bilgiler üzerinden seni inceleyip en kısa sürede seninle iletişime geçecek.",
-      whatsappCta: "İstersen WhatsApp'tan şimdi de yazabilirsin.",
+        "Bilgilerini aldık. Ekibimiz paylaştıklarını inceleyip en kısa sürede seninle iletişime geçecek.",
+      whatsappCta: "İstersen şimdi WhatsApp'tan da bize yazabilirsin.",
       backHome: "Ana Sayfaya Dön",
     },
     error: {
       title: "Bir şeyler ters gitti.",
-      description: "Formu gönderirken bir sorun oluştu. Tekrar deneyebilir ya da doğrudan WhatsApp'tan yazabilirsin.",
+      description: "Formu gönderirken bir sorun oluştu. Bir kez daha deneyebilirsin; olmazsa bize doğrudan WhatsApp'tan yazabilirsin.",
       retry: "Tekrar Dene",
     },
   },
@@ -824,7 +835,7 @@ export const tr: Dictionary = {
     description:
       "Almanya'da eğitim hayatını ilerletmek isteyen herkes için: nereden başlarsan başla, bir sonraki adımı birlikte buluyoruz.",
     navTitle: "Sayfalar",
-    legalTitle: "Yasal",
+    legalTitle: "Yasal Bilgiler",
     legalLinks: [
       { label: "Gizlilik Politikası", route: "privacy" },
       { label: "KVKK Aydınlatma Metni", route: "kvkk" },

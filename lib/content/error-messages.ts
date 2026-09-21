@@ -13,7 +13,7 @@ export const errorMessages: Record<
   tr: {
     eyebrow: "Bir şeyler ters gitti",
     title: "Sayfa yüklenirken bir sorun oluştu.",
-    description: "Tekrar deneyebilir ya da ana sayfaya dönebilirsin.",
+    description: "Sayfayı yeniden deneyebilirsin ya da ana sayfaya dönebilirsin.",
     retry: "Tekrar Dene",
     home: "Ana Sayfaya Dön",
   },

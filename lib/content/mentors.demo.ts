@@ -11,7 +11,7 @@ import type { Mentor } from "./types";
 export const demoMentors: Mentor[] = [
   {
     id: "demo-mentor-1",
-    name: "Örnek Mentor",
+    name: "Örnek Mentör",
     role: "Eğitim Danışmanı",
     bio: "Almanya'da yüksek lisansını tamamladı ve bugün öğrencilerin başvuru ve vize sürecinde yanında oluyor.",
     germanyExperience: "6 yıl, Berlin",
@@ -21,8 +21,8 @@ export const demoMentors: Mentor[] = [
   },
   {
     id: "demo-mentor-2",
-    name: "Örnek Mentor",
-    role: "Mentorluk Koordinatörü",
+    name: "Örnek Mentör",
+    role: "Mentörlük Koordinatörü",
     bio: "Almanya'da lisans eğitimini tamamladıktan sonra Studienkolleg ve dil süreçlerinde öğrencilere yol gösteriyor.",
     germanyExperience: "5 yıl, Münih",
     education: "LMU München — Lisans",
@@ -31,12 +31,12 @@ export const demoMentors: Mentor[] = [
   },
   {
     id: "demo-mentor-3",
-    name: "Örnek Mentor",
+    name: "Örnek Mentör",
     role: "Vize Süreç Danışmanı",
     bio: "Kendi vize sürecinde yaşadığı belirsizlikten yola çıkarak, öğrencilerin belge ve randevu takibini birlikte yürütüyor.",
     germanyExperience: "4 yıl, Hamburg",
     education: "Universität Hamburg — Yüksek Lisans",
-    specialty: "Vize hazırlığı ve blocked account süreci",
+    specialty: "Vize hazırlığı ve bloke hesap süreci",
     quote: "Küçük bir eksik süreci geciktirebiliyor; bu yüzden hiçbir detayı atlamıyoruz.",
   },
 ];

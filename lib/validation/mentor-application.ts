@@ -6,7 +6,7 @@ export const mentorApplicationSchema = z.object({
   phone: z.string().trim().min(6, "Geçerli bir telefon numarası gir."),
   email: z.string().trim().email("Geçerli bir e-posta adresi gir."),
   germanyExperience: z.string().trim().min(10, "Almanya deneyimini birkaç cümleyle anlat.").max(3000),
-  motivation: z.string().trim().min(10, "Neden mentor olmak istediğini birkaç cümleyle anlat.").max(3000),
+  motivation: z.string().trim().min(10, "Neden mentör olmak istediğini birkaç cümleyle anlat.").max(3000),
   message: z.string().max(2000).optional().default(""),
 
   /** Client-generated once per form session (crypto.randomUUID()) and

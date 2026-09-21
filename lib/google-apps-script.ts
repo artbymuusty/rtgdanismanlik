@@ -16,7 +16,7 @@ import { fallbackLocale, isLocale, type Locale } from "@/lib/i18n/config";
 const REQUEST_TIMEOUT_MS = 8000;
 
 const GENERIC_ERRORS: Record<Locale, string> = {
-  tr: "Başvuru şu anda tamamlanamadı. Lütfen İletişim sayfasındaki kanallardan bize ulaş.",
+  tr: "Başvurun şu anda tamamlanamadı. Lütfen İletişim sayfasındaki kanallardan bize ulaş.",
   en: "Your application couldn't be completed right now. Please reach us through the channels on the Contact page.",
   de: "Deine Bewerbung konnte gerade nicht abgeschlossen werden. Bitte melde dich über die Kanäle auf der Kontaktseite bei uns.",
 };
