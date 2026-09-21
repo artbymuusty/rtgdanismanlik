@@ -6,6 +6,10 @@ import { internalPath, localizedPath, routeKeyFromPath, routes, splitLocale } fr
 /**
  * Language routing.
  *
+ * /crm is excluded entirely (see the matcher below) — it is a separate,
+ * session-authenticated Turkish-only admin surface, not part of the public
+ * multi-language site.
+ *
  *  - No locale in the URL (/, /basvuru, /how-we-help …): pick the visitor's
  *    language (cookie → country → safe fallback, see detect.ts) and
  *    redirect to the same page under /tr, /en or /de. Temporary + no-store,
@@ -51,5 +55,5 @@ export function proxy(request: NextRequest) {
 export const config = {
   // Skip Next internals, API routes and any path with a file extension
   // (images, robots.txt, sitemap.xml, favicon…).
-  matcher: ["/((?!_next|api|.*\\..*).*)"],
+  matcher: ["/((?!_next|api|crm|.*\\..*).*)"],
 };

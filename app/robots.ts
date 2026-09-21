@@ -6,6 +6,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
+      // The CRM is behind a login and must never be indexed or crawled.
+      disallow: "/crm",
     },
     sitemap: `${siteConfig.url}/sitemap.xml`,
   };

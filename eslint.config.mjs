@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Node test harness for integrations/google-apps-script/Code.gs — plain
+    // CommonJS by design (node:test + require()), not part of the app bundle.
+    "tests/**",
   ]),
 ]);
 

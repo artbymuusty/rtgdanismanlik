@@ -55,6 +55,13 @@
  *   "payload": { ...validated fields, see lib/validation/*.ts }
  * }
  *
+ * Web CRM (Next.js /crm) actions — same secret, no submissionId, LEADS_CRM
+ * only: crm_list, crm_get, crm_update, crm_bulk_update, crm_create. See the
+ * "WEB CRM MANAGEMENT API" section at the bottom of this file. They never
+ * delete rows, never write LEADS_RAW directly (the first-meeting snapshot
+ * goes through runFirstMeetingLifecycle(), the same function onEdit uses),
+ * and never change the public lead / mentor code paths.
+ *
  * Response: always HTTP 200 with a JSON body — either
  * { "ok": true, "id": "RTG-L-..." } or { "ok": false, "error": "..." }.
  * Apps Script Web Apps don't expose custom request headers to doPost(e),
@@ -178,6 +185,13 @@ function handleRequest(e) {
       (body.secret ? "sent a secret" : "sent NO secret") + ")"
     );
     return { ok: false, error: "unauthorized" };
+  }
+
+  // Web CRM management actions (crm_list / crm_get / crm_update / ...). They
+  // carry no submissionId, so they are routed here — before the public-form
+  // check below — and never touch the public lead / mentor code paths.
+  if (typeof body.type === "string" && body.type.indexOf("crm_") === 0) {
+    return handleCrmRequest(body);
   }
 
   if (!body.submissionId || typeof body.submissionId !== "string") {
@@ -761,26 +775,13 @@ function handleLeadsCrmStatusEdit(e) {
 
   if (newValue === STATUS_MET) {
     var tz = e.source.getSpreadsheetTimeZone();
-    if (!alreadyMet) {
-      firstMeetingCell.setValue(Utilities.formatDate(new Date(), tz, "dd.MM.yyyy HH:mm"));
-    }
-
-    // Creates the lead's LEADS_RAW row if — and only if — none exists for
-    // this ID yet. Runs on every transition to STATUS_MET (not just the one
-    // that stamped the date) so a first attempt that failed can be retried
-    // by re-selecting the status; snapshotLeadProfileToRaw() itself
-    // no-ops when a RAW row for the ID already exists, so re-triggering
-    // never duplicates or re-snapshots.
-    var idCol = headerIndex(headers, "ID") + 1;
-    var leadId = idCol > 0 ? sheet.getRange(row, idCol).getValue() : null;
-    var rawSheet = e.source.getSheetByName(LEADS_RAW_SHEET_NAME);
-    if (leadId && rawSheet) {
-      try {
-        snapshotLeadProfileToRaw(sheet, rawSheet, leadId, tz);
-      } catch (err) {
-        Logger.log("[RTG onEdit] snapshot failed: " + (err && err.name) + ": " + (err && err.message));
-        e.source.toast("LEADS_RAW kaydı oluşturulamadı — Apps Script Executions logunu kontrol et.", "RTG CRM", 8);
-      }
+    // The very same function the web CRM (crm_update) calls — one lifecycle,
+    // one source of truth. Runs on every transition to STATUS_MET, so a first
+    // attempt that failed can be retried by re-selecting the status; the RAW
+    // snapshot itself no-ops when a RAW row for the ID already exists.
+    var lifecycle = runFirstMeetingLifecycle(e.source, sheet, row, headers, tz, "[RTG onEdit]");
+    if (lifecycle.snapshot === "failed") {
+      e.source.toast("LEADS_RAW kaydı oluşturulamadı — Apps Script Executions logunu kontrol et.", "RTG CRM", 8);
     }
     return;
   }
@@ -789,6 +790,49 @@ function handleLeadsCrmStatusEdit(e) {
     e.range.setValue(e.oldValue !== undefined ? e.oldValue : STATUS_NOT_MET);
     e.source.toast("Önce “" + STATUS_MET + "” durumuna geçmelisin.", "RTG CRM", 6);
   }
+}
+
+/**
+ * The first-meeting lifecycle for ONE LEADS_CRM row, run right AFTER its
+ * "Durum" cell has been set to STATUS_MET. This is the single implementation
+ * of the rule; it is called by both:
+ *   - onEdit()            — a person changed Durum in the Sheets UI, and
+ *   - crmApplyChanges()   — the web CRM changed Durum (script writes never
+ *                           fire onEdit, so the web path must call it itself).
+ *
+ * 1. "İlk Görüşme Tarihi" is stamped with now() if — and only if — empty.
+ * 2. snapshotLeadProfileToRaw() creates the lead's LEADS_RAW row if none
+ *    exists for the ID (never a second row, never an overwrite).
+ *
+ * Returns { dateStamped, snapshot, error } where snapshot is one of
+ * "created" | "exists" | "skipped" | "failed". Never throws.
+ */
+function runFirstMeetingLifecycle(ss, crmSheet, row, headers, tz, logTag) {
+  var result = { dateStamped: false, snapshot: "skipped", error: "" };
+
+  var firstMeetingCol = headerIndex(headers, "İlk Görüşme Tarihi") + 1;
+  if (firstMeetingCol < 1) return result;
+  var firstMeetingCell = crmSheet.getRange(row, firstMeetingCol);
+  var existing = firstMeetingCell.getValue();
+  if (existing === "" || existing === null) {
+    firstMeetingCell.setValue(Utilities.formatDate(new Date(), tz, "dd.MM.yyyy HH:mm"));
+    result.dateStamped = true;
+  }
+
+  var idCol = headerIndex(headers, "ID") + 1;
+  var leadId = idCol > 0 ? crmSheet.getRange(row, idCol).getValue() : null;
+  var rawSheet = ss.getSheetByName(LEADS_RAW_SHEET_NAME);
+  if (!leadId || !rawSheet) return result;
+
+  try {
+    var created = snapshotLeadProfileToRaw(crmSheet, rawSheet, leadId, tz);
+    result.snapshot = created ? "created" : (findRowIndexById(rawSheet, leadId) > 0 ? "exists" : "skipped");
+  } catch (err) {
+    Logger.log(logTag + " snapshot failed: " + (err && err.name) + ": " + (err && err.message));
+    result.snapshot = "failed";
+    result.error = String((err && err.message) || "snapshot_failed");
+  }
+  return result;
 }
 
 /**
@@ -871,4 +915,480 @@ function snapshotLeadProfileToRaw(crmSheet, rawSheet, id, tz) {
   }
   Logger.log("[RTG snapshot] created " + LEADS_RAW_SHEET_NAME + " row for id=" + id);
   return true;
+}
+
+
+// ===========================================================================
+// WEB CRM MANAGEMENT API  (crm_list / crm_get / crm_update / crm_bulk_update /
+// crm_create)
+//
+// Used only by the Next.js server behind /crm (authenticated there with
+// CRM_ADMIN_SECRET). Guarded here by the same API_SECRET as the public form.
+//
+// Guarantees:
+//   - LEADS_CRM is the only sheet these actions read rows from or write rows
+//     to. LEADS_RAW is touched ONLY through runFirstMeetingLifecycle() (the
+//     same code onEdit uses), never by these actions directly.
+//   - Rows are addressed by "ID", never by row number.
+//   - Optimistic concurrency without a new column: every row carries a
+//     `version` (a hash of its 23 values); crm_update rejects a stale
+//     expectedVersion with `conflict`.
+//   - No delete action exists.
+//   - Text is stripped of control characters and neutralized against Sheets
+//     formula injection ("=", "+", "-", "@" leading characters).
+//   - Logs contain action names, IDs, field NAMES and counts — never cell
+//     values (no names, e-mails, phone numbers, notes).
+//   - A best-effort CRM_AUDIT sheet (created on first write; never blocks a
+//     write, never stores personal-data values) records who changed what.
+// ===========================================================================
+
+var CRM_AUDIT_SHEET_NAME = "CRM_AUDIT";
+var CRM_AUDIT_COLUMNS = ["Zaman", "ID", "Eylem", "Alan", "Eski Değer", "Yeni Değer", "Kullanıcı"];
+var CRM_STATUSES = [STATUS_NOT_MET, STATUS_MET].concat(STATUS_OUTCOMES);
+var CRM_READONLY_FIELDS = ["ID", "Başvuru Tarihi"];
+var CRM_BULK_FIELDS = ["Sorumlu", "Durum", "Mentor ID"];
+// Fields whose VALUES are personal data or free text: the audit log records
+// that they changed, never what they changed from/to.
+var CRM_AUDIT_MASKED = ["Notlar", "Ad", "Soyad", "Email", "Telefon", "Hakkında / Deneyim", "Mesaj"];
+var CRM_MAX_LENGTH = { "Notlar": 10000, "Hakkında / Deneyim": 5000, "Mesaj": 5000, "Drive Folder": 1000 };
+var CRM_DEFAULT_MAX_LENGTH = 500;
+var CRM_MAX_BULK = 200;
+var CRM_DATE_PATTERN = /^\d{2}\.\d{2}\.\d{4}( \d{2}:\d{2})?$/;
+var CRM_CREATE_FIELDS = [
+  "Ad", "Soyad", "Email", "Telefon", "Tercih Edilen İletişim",
+  "Aşama", "Eğitim Durumu", "İlgi Alanı", "İngilizce Seviyesi", "Almanca Seviyesi",
+  "Almanya Hedefi", "Zaman Çizelgesi", "Hakkında / Deneyim", "Mesaj", "Sorumlu", "Notlar"
+];
+
+function handleCrmRequest(body) {
+  var type = body.type;
+  if (type === "crm_list") return crmList();
+  if (type === "crm_get") return crmGet(body);
+  if (type === "crm_update") return crmWithLock(function () { return crmUpdate(body); });
+  if (type === "crm_bulk_update") return crmWithLock(function () { return crmBulkUpdate(body); });
+  if (type === "crm_create") return crmWithLock(function () { return crmCreate(body); });
+  Logger.log("[RTG crm] rejected: unknown_type");
+  return { ok: false, error: "unknown_type" };
+}
+
+/** Serializes CRM writes so two staff members (or a bulk run) never
+ * interleave read-modify-write cycles on the same rows. */
+function crmWithLock(fn) {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) {
+    Logger.log("[RTG crm] busy: could not obtain the script lock");
+    return { ok: false, error: "busy" };
+  }
+  try {
+    return fn();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Opens LEADS_CRM read-only-ish: never creates or repairs anything. */
+function crmOpen() {
+  var spreadsheetId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+  var ss = SpreadsheetApp.openById(spreadsheetId);
+  var sheet = ss.getSheetByName(LEADS_CRM_SHEET_NAME);
+  if (!sheet) return { error: "crm_sheet_missing" };
+  var mismatches = findHeaderMismatches(sheet, LEADS_CRM_COLUMNS);
+  if (mismatches.length > 0) {
+    Logger.log("[RTG crm] sheet_header_mismatch:" + LEADS_CRM_SHEET_NAME + " (" + mismatches.length + " column(s))");
+    return { error: "sheet_header_mismatch:" + LEADS_CRM_SHEET_NAME };
+  }
+  return { ss: ss, sheet: sheet, tz: ss.getSpreadsheetTimeZone() };
+}
+
+function crmCellToString(v) {
+  if (v === null || v === undefined) return "";
+  if (Object.prototype.toString.call(v) === "[object Date]") {
+    return isNaN(v.getTime()) ? "" : v.toISOString();
+  }
+  return String(v);
+}
+
+/** 32-bit FNV-1a over the row's values: a cheap, dependency-free version
+ * stamp. A change to ANY of the 23 cells changes it. */
+function crmRowVersion(values) {
+  var text = values.join("\u0001");
+  var h = 0x811c9dc5;
+  for (var i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h.toString(16);
+}
+
+function crmRowPayload(values) {
+  return { v: values, ver: crmRowVersion(values) };
+}
+
+function crmReadRowValues(sheet, sheetRow) {
+  return sheet.getRange(sheetRow, 1, 1, LEADS_CRM_COLUMNS.length).getValues()[0].map(crmCellToString);
+}
+
+function crmReadAllRows(sheet) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  var raw = sheet.getRange(2, 1, lastRow - 1, LEADS_CRM_COLUMNS.length).getValues();
+  var rows = [];
+  for (var i = 0; i < raw.length; i++) {
+    var values = raw[i].map(crmCellToString);
+    if (values[0] === "") continue; // blank line
+    rows.push(values);
+  }
+  return rows;
+}
+
+function crmReadTeam(ss) {
+  var team = ss.getSheetByName(TEAM_SHEET_NAME);
+  if (!team || team.getLastRow() < 2) return [];
+  var values = team.getRange(2, 1, team.getLastRow() - 1, 1).getValues();
+  var names = [];
+  for (var i = 0; i < values.length; i++) {
+    var name = String(values[i][0] === null || values[i][0] === undefined ? "" : values[i][0]).trim();
+    if (name && names.indexOf(name) === -1) names.push(name);
+  }
+  return names;
+}
+
+/** Strips control characters (keeps \n and \t), normalizes line breaks, trims. */
+function crmCleanText(value) {
+  return String(value)
+    .replace(/\r\n?/g, "\n")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+    .trim();
+}
+
+/** Sheets evaluates a string starting with = + - @ as a formula (e.g.
+ * =IMPORTXML(...) can exfiltrate data). Prefixing an apostrophe stores it as
+ * plain text. Phone-like values ("+90 555 123 45 67") are left alone. */
+function crmNeutralizeFormula(value) {
+  var v = String(value);
+  if (/^[=+\-@]/.test(v) && !/^[+\-]?[0-9][0-9 ()\-.]*$/.test(v)) return "'" + v;
+  return v;
+}
+
+function crmActor(body) {
+  var actor = String(body && body.actor ? body.actor : "").replace(/[^A-Za-zÇĞİÖŞÜçğıöşü0-9 ._-]/g, "").trim().slice(0, 40);
+  return actor || "crm-admin";
+}
+
+function crmList() {
+  var c = crmOpen();
+  if (c.error) return { ok: false, error: c.error };
+  var rows = crmReadAllRows(c.sheet);
+  var out = [];
+  for (var i = 0; i < rows.length; i++) out.push(crmRowPayload(rows[i]));
+  Logger.log("[RTG crm] list ok rows=" + out.length);
+  return {
+    ok: true,
+    columns: LEADS_CRM_COLUMNS,
+    statuses: CRM_STATUSES,
+    team: crmReadTeam(c.ss),
+    rows: out,
+    total: out.length,
+    fetchedAt: new Date().toISOString()
+  };
+}
+
+/** Snapshot / source facts for the detail panel. Read-only: never creates or
+ * repairs LEADS_RAW. Before the first meeting, Submission ID / Source /
+ * Kaynak Detayı live in Script Properties (see saveLeadMeta); afterwards in
+ * the RAW row. */
+function crmSnapshotInfo(ss, id) {
+  var meta = readLeadMeta(id);
+  var info = {
+    exists: false,
+    legacy: false,
+    date: "",
+    submissionId: meta.s || "",
+    source: meta.o || "",
+    sourceDetail: meta.k || ""
+  };
+  var raw = ss.getSheetByName(LEADS_RAW_SHEET_NAME);
+  if (!raw || raw.getLastRow() < 2 || raw.getLastColumn() < 1) return info;
+  var rawRow = findRowIndexById(raw, id);
+  if (rawRow < 1) return info;
+  var headers = raw.getRange(1, 1, 1, raw.getLastColumn()).getValues()[0];
+  var values = raw.getRange(rawRow, 1, 1, raw.getLastColumn()).getValues()[0];
+  function rawValue(name) {
+    var idx = headerIndex(headers, name);
+    return idx < 0 ? "" : crmCellToString(values[idx]);
+  }
+  info.exists = true;
+  info.date = rawValue("Profil Snapshot Tarihi");
+  info.legacy = info.date === ""; // written at submission time by the old flow
+  info.submissionId = rawValue("Submission ID") || info.submissionId;
+  info.source = rawValue("Source") || info.source;
+  info.sourceDetail = rawValue("Kaynak Detayı") || info.sourceDetail;
+  return info;
+}
+
+function crmReadActivity(ss, id, limit) {
+  var sheet = ss.getSheetByName(CRM_AUDIT_SHEET_NAME);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var n = sheet.getLastRow() - 1;
+  var ids = sheet.getRange(2, 2, n, 1).getValues();
+  var hits = [];
+  for (var i = n - 1; i >= 0 && hits.length < limit; i--) {
+    if (ids[i][0] === id) hits.push(i + 2);
+  }
+  var out = [];
+  for (var j = 0; j < hits.length; j++) {
+    var v = sheet.getRange(hits[j], 1, 1, CRM_AUDIT_COLUMNS.length).getValues()[0].map(crmCellToString);
+    out.push({ at: v[0], action: v[2], field: v[3], from: v[4], to: v[5], by: v[6] });
+  }
+  return out;
+}
+
+function crmGet(body) {
+  var c = crmOpen();
+  if (c.error) return { ok: false, error: c.error };
+  if (typeof body.id !== "string" || !body.id) return { ok: false, error: "missing_id" };
+  var sheetRow = findRowIndexById(c.sheet, body.id);
+  if (sheetRow < 1) return { ok: false, error: "not_found" };
+  return {
+    ok: true,
+    row: crmRowPayload(crmReadRowValues(c.sheet, sheetRow)),
+    snapshot: crmSnapshotInfo(c.ss, body.id),
+    activity: crmReadActivity(c.ss, body.id, 15)
+  };
+}
+
+/** Best-effort audit trail. Never throws, never blocks the write it records. */
+function crmAppendAudit(ss, entries) {
+  if (!entries.length) return;
+  try {
+    var sheet = ss.getSheetByName(CRM_AUDIT_SHEET_NAME);
+    if (!sheet) {
+      sheet = ss.insertSheet(CRM_AUDIT_SHEET_NAME);
+      sheet.appendRow(CRM_AUDIT_COLUMNS);
+      sheet.setFrozenRows(1);
+    }
+    for (var i = 0; i < entries.length; i++) {
+      var e = entries[i];
+      sheet.appendRow([e.at, e.id, e.action, e.field, crmNeutralizeFormula(e.from), crmNeutralizeFormula(e.to), e.by]);
+    }
+  } catch (err) {
+    Logger.log("[RTG crm] WARNING: audit log write failed: " + (err && err.message));
+  }
+}
+
+function crmAuditValue(field, value) {
+  return CRM_AUDIT_MASKED.indexOf(field) !== -1 ? "(gizli)" : value;
+}
+
+/** Returns "" when valid, otherwise an error code. `current` is the cell's
+ * present value: an unchanged legacy value is never rejected. */
+function crmValidateField(field, value, current, team) {
+  if (field === "Durum") return CRM_STATUSES.indexOf(value) === -1 ? "invalid_status" : "";
+  if (field === "Sorumlu") {
+    if (value !== "" && value !== current && team.length > 0 && team.indexOf(value) === -1) return "invalid_responsible";
+    return "";
+  }
+  if (field === "Tercih Edilen İletişim") {
+    if (value !== "" && value !== current && value !== "whatsapp" && value !== "phone") return "invalid_value";
+    return "";
+  }
+  if (field === "İlk Görüşme Tarihi") {
+    if (value !== "" && !CRM_DATE_PATTERN.test(value) && !/^\d{4}-\d{2}-\d{2}T/.test(value)) return "invalid_date";
+    return "";
+  }
+  if (field === "Email") {
+    if (value !== "" && value !== current && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) return "invalid_email";
+    return "";
+  }
+  if (field === "Drive Folder") {
+    // Only https links: a stored "javascript:" URL must never become a live link.
+    if (value !== "" && value !== current && !/^https:\/\//i.test(value)) return "invalid_url";
+    return "";
+  }
+  if (field === "Mentor ID") {
+    if (value !== "" && value !== current && !/^[A-Za-z0-9_.\- ]{1,64}$/.test(value)) return "invalid_mentor_id";
+    return "";
+  }
+  if ((field === "Ad" || field === "Soyad") && value === "") return "invalid_value";
+  return "";
+}
+
+/**
+ * Applies validated changes to ONE lead, addressed by ID.
+ *
+ * Order matters: every non-Durum field is written first, then Durum, then —
+ * only when Durum is STATUS_MET — runFirstMeetingLifecycle(), so a RAW
+ * snapshot taken by this very request already contains the profile edits
+ * made in the same request.
+ *
+ * Workflow rule (mirrors onEdit): an outcome status is rejected while the
+ * lead's stored "İlk Görüşme Tarihi" is empty. Nothing is written when any
+ * part of the request is invalid.
+ */
+function crmApplyChanges(c, id, changes, expectedVersion, actor, action) {
+  if (!changes || typeof changes !== "object" || Array.isArray(changes)) return { ok: false, error: "invalid_changes" };
+  var fields = Object.keys(changes);
+  if (fields.length === 0) return { ok: false, error: "no_changes" };
+
+  var sheetRow = findRowIndexById(c.sheet, id);
+  if (sheetRow < 1) return { ok: false, error: "not_found" };
+
+  var before = crmReadRowValues(c.sheet, sheetRow);
+  if (expectedVersion && expectedVersion !== crmRowVersion(before)) {
+    return { ok: false, error: "conflict", row: crmRowPayload(before) };
+  }
+
+  var team = crmReadTeam(c.ss);
+  var clean = {};
+  for (var i = 0; i < fields.length; i++) {
+    var field = fields[i];
+    var idx = LEADS_CRM_COLUMNS.indexOf(field);
+    if (idx < 0) return { ok: false, error: "unknown_field", field: field };
+    if (CRM_READONLY_FIELDS.indexOf(field) !== -1) return { ok: false, error: "field_not_editable", field: field };
+    if (typeof changes[field] !== "string") return { ok: false, error: "invalid_value", field: field };
+    var value = crmCleanText(changes[field]);
+    if (value.length > (CRM_MAX_LENGTH[field] || CRM_DEFAULT_MAX_LENGTH)) return { ok: false, error: "value_too_long", field: field };
+    var problem = crmValidateField(field, value, before[idx], team);
+    if (problem) return { ok: false, error: problem, field: field };
+    clean[field] = value;
+  }
+
+  var durumIdx = LEADS_CRM_COLUMNS.indexOf("Durum");
+  var dateIdx = LEADS_CRM_COLUMNS.indexOf("İlk Görüşme Tarihi");
+  var newDurum = Object.prototype.hasOwnProperty.call(clean, "Durum") ? clean["Durum"] : null;
+  var effectiveDurum = newDurum !== null ? newDurum : before[durumIdx];
+
+  if (newDurum !== null && STATUS_OUTCOMES.indexOf(newDurum) !== -1 && before[dateIdx] === "") {
+    return { ok: false, error: "first_meeting_required" };
+  }
+  if (Object.prototype.hasOwnProperty.call(clean, "İlk Görüşme Tarihi") && clean["İlk Görüşme Tarihi"] === "" && effectiveDurum !== STATUS_NOT_MET) {
+    return { ok: false, error: "first_meeting_date_required" };
+  }
+
+  for (var f in clean) {
+    if (f === "Durum" || !Object.prototype.hasOwnProperty.call(clean, f)) continue;
+    c.sheet.getRange(sheetRow, LEADS_CRM_COLUMNS.indexOf(f) + 1).setValue(crmNeutralizeFormula(clean[f]));
+  }
+  if (newDurum !== null) c.sheet.getRange(sheetRow, durumIdx + 1).setValue(newDurum);
+
+  var lifecycle = null;
+  if (newDurum === STATUS_MET) {
+    lifecycle = runFirstMeetingLifecycle(c.ss, c.sheet, sheetRow, LEADS_CRM_COLUMNS, c.tz, "[RTG crm]");
+  }
+  SpreadsheetApp.flush();
+
+  var after = crmReadRowValues(c.sheet, sheetRow);
+  var at = new Date().toISOString();
+  var audit = [];
+  for (var g in clean) {
+    if (!Object.prototype.hasOwnProperty.call(clean, g)) continue;
+    var gi = LEADS_CRM_COLUMNS.indexOf(g);
+    if (before[gi] !== after[gi]) {
+      audit.push({ at: at, id: id, action: action, field: g, from: crmAuditValue(g, before[gi]), to: crmAuditValue(g, after[gi]), by: actor });
+    }
+  }
+  if (lifecycle && lifecycle.dateStamped) {
+    audit.push({ at: at, id: id, action: "lifecycle", field: "İlk Görüşme Tarihi", from: "", to: after[dateIdx], by: actor });
+  }
+  if (lifecycle && lifecycle.snapshot === "created") {
+    audit.push({ at: at, id: id, action: "lifecycle", field: "LEADS_RAW", from: "", to: "snapshot oluşturuldu", by: actor });
+  }
+  crmAppendAudit(c.ss, audit);
+
+  Logger.log("[RTG crm] " + action + " ok id=" + id + " fields=" + fields.join(",") +
+    (lifecycle ? " snapshot=" + lifecycle.snapshot : ""));
+  return { ok: true, row: crmRowPayload(after), lifecycle: lifecycle };
+}
+
+function crmUpdate(body) {
+  var c = crmOpen();
+  if (c.error) return { ok: false, error: c.error };
+  if (typeof body.id !== "string" || !body.id) return { ok: false, error: "missing_id" };
+  var expected = typeof body.expectedVersion === "string" ? body.expectedVersion : "";
+  return crmApplyChanges(c, body.id, body.changes, expected, crmActor(body), "update");
+}
+
+function crmBulkUpdate(body) {
+  var c = crmOpen();
+  if (c.error) return { ok: false, error: c.error };
+  var ids = body.ids;
+  if (!Array.isArray(ids) || ids.length === 0) return { ok: false, error: "missing_ids" };
+  if (ids.length > CRM_MAX_BULK) return { ok: false, error: "too_many_ids" };
+  if (!body.changes || typeof body.changes !== "object" || Array.isArray(body.changes)) return { ok: false, error: "invalid_changes" };
+  var changeFields = Object.keys(body.changes);
+  if (changeFields.length === 0) return { ok: false, error: "no_changes" };
+  for (var i = 0; i < changeFields.length; i++) {
+    if (CRM_BULK_FIELDS.indexOf(changeFields[i]) === -1) return { ok: false, error: "bulk_field_not_allowed", field: changeFields[i] };
+  }
+
+  var actor = crmActor(body);
+  var seen = {};
+  var results = [];
+  var updated = 0;
+  for (var j = 0; j < ids.length; j++) {
+    var id = ids[j];
+    if (typeof id !== "string" || !id || seen[id]) { results.push({ id: String(id), ok: false, error: "invalid_id" }); continue; }
+    seen[id] = true;
+    var r = crmApplyChanges(c, id, body.changes, "", actor, "bulk_update");
+    if (r.ok) { updated++; results.push({ id: id, ok: true, row: r.row, lifecycle: r.lifecycle }); }
+    else results.push({ id: id, ok: false, error: r.error });
+  }
+  Logger.log("[RTG crm] bulk_update done requested=" + ids.length + " updated=" + updated + " fields=" + changeFields.join(","));
+  return { ok: true, results: results, updated: updated, failed: results.length - updated };
+}
+
+/** Manual lead. Its own action and its own validation — not the public form
+ * endpoint. Source is stored as "manual" (Script Properties, shown in the
+ * detail panel and copied to the RAW snapshot later). */
+function crmCreate(body) {
+  var c = crmOpen();
+  if (c.error) return { ok: false, error: c.error };
+  var fields = body.fields;
+  if (!fields || typeof fields !== "object" || Array.isArray(fields)) return { ok: false, error: "invalid_fields" };
+  var requestId = typeof body.requestId === "string" ? body.requestId : "";
+  if (!/^[A-Za-z0-9_-]{8,64}$/.test(requestId)) return { ok: false, error: "invalid_request_id" };
+
+  var clean = {};
+  var keys = Object.keys(fields);
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if (CRM_CREATE_FIELDS.indexOf(key) === -1) return { ok: false, error: "unknown_field", field: key };
+    if (typeof fields[key] !== "string") return { ok: false, error: "invalid_value", field: key };
+    var value = crmCleanText(fields[key]);
+    if (value.length > (CRM_MAX_LENGTH[key] || CRM_DEFAULT_MAX_LENGTH)) return { ok: false, error: "value_too_long", field: key };
+    var problem = crmValidateField(key, value, "", crmReadTeam(c.ss));
+    if (problem) return { ok: false, error: problem, field: key };
+    clean[key] = value;
+  }
+  if (!clean["Ad"] || !clean["Soyad"]) return { ok: false, error: "missing_name" };
+  if (!clean["Email"] && !clean["Telefon"]) return { ok: false, error: "missing_contact" };
+
+  var subId = "manual:" + requestId;
+  var existingId = findExistingLeadId(subId);
+  if (existingId) {
+    var existingRow = findRowIndexById(c.sheet, existingId);
+    return { ok: true, id: existingId, existing: true, row: existingRow > 0 ? crmRowPayload(crmReadRowValues(c.sheet, existingRow)) : null };
+  }
+
+  var id = generateId("L", Utilities.getUuid());
+  if (rowExistsById(c.sheet, id)) id += "-" + String(Utilities.getUuid()).replace(/-/g, "").slice(0, 6).toUpperCase();
+  function v(name) { return Object.prototype.hasOwnProperty.call(clean, name) ? crmNeutralizeFormula(clean[name]) : ""; }
+  var row = [id, new Date().toISOString()]
+    .concat([
+      v("Ad"), v("Soyad"), v("Email"), v("Telefon"), v("Tercih Edilen İletişim"),
+      v("Aşama"), v("Eğitim Durumu"), v("İlgi Alanı"), v("İngilizce Seviyesi"), v("Almanca Seviyesi"),
+      v("Almanya Hedefi"), v("Zaman Çizelgesi"), v("Hakkında / Deneyim"), v("Mesaj"),
+      "Manuel giriş"
+    ])
+    .concat([v("Sorumlu"), STATUS_NOT_MET, "", v("Notlar"), "", ""]);
+  appendVerifiedRow(c.sheet, LEADS_CRM_SHEET_NAME, LEADS_CRM_COLUMNS.length, id, row);
+
+  try {
+    saveLeadMeta(id, subId, "", "manual");
+  } catch (err) {
+    Logger.log("[RTG crm] WARNING: manual lead saved but saveLeadMeta failed: " + (err && err.message));
+  }
+  crmAppendAudit(c.ss, [{ at: new Date().toISOString(), id: id, action: "create", field: "(yeni lead)", from: "", to: "manuel", by: crmActor(body) }]);
+  Logger.log("[RTG crm] create ok id=" + id);
+  return { ok: true, id: id, existing: false, row: crmRowPayload(crmReadRowValues(c.sheet, findRowIndexById(c.sheet, id))) };
 }
