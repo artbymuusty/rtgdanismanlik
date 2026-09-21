@@ -114,7 +114,7 @@ export function MentorApplicationForm({
           value={values.germanyExperience}
           onChange={(e) => update("germanyExperience", e.target.value)}
           placeholder={t.fields.germanyExperiencePlaceholder}
-          className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-sm text-ink outline-none focus-visible:border-accent"
+          className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-base text-ink outline-none focus-visible:border-accent sm:text-sm"
         />
       </div>
 
@@ -129,7 +129,7 @@ export function MentorApplicationForm({
           value={values.motivation}
           onChange={(e) => update("motivation", e.target.value)}
           placeholder={t.fields.motivationPlaceholder}
-          className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-sm text-ink outline-none focus-visible:border-accent"
+          className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-base text-ink outline-none focus-visible:border-accent sm:text-sm"
         />
       </div>
 
@@ -143,7 +143,7 @@ export function MentorApplicationForm({
           value={values.message}
           onChange={(e) => update("message", e.target.value)}
           placeholder={t.fields.messagePlaceholder}
-          className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-sm text-ink outline-none focus-visible:border-accent"
+          className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-base text-ink outline-none focus-visible:border-accent sm:text-sm"
         />
       </div>
 
@@ -184,7 +184,7 @@ function TextField({
         required
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-sm text-ink outline-none focus-visible:border-accent"
+        className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-base text-ink outline-none focus-visible:border-accent sm:text-sm"
       />
     </div>
   );

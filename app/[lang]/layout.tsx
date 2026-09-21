@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Public_Sans, IBM_Plex_Mono } from "next/font/google";
 import "../globals.css";
 import { Header } from "@/components/layout/Header";
@@ -30,12 +30,21 @@ const plexMono = IBM_Plex_Mono({
   weight: ["400", "500"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#faf7f1",
+};
+
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
-// Anything that is not a supported language is a 404, not a fallback render.
-export const dynamicParams = false;
+// No `dynamicParams = false` here on purpose: it would also stop the catch-all
+// page below from rendering the localized 404. An unsupported language is
+// rejected by getLang() (a 404) instead, and proxy.ts never lets one through
+// in normal navigation.
 
 export async function generateMetadata({ params }: { params: LangParams }): Promise<Metadata> {
   const lang = await getLang(params);

@@ -1,20 +1,20 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { fallbackLocale, isLocale, type Locale } from "@/lib/i18n/config";
-import { localizedPath } from "@/lib/i18n/routes";
+import { usePathname } from "next/navigation";
+import { fallbackLocale, type Locale } from "@/lib/i18n/config";
+import { localizedPath, splitLocale } from "@/lib/i18n/routes";
 import type { Dictionary } from "@/lib/content/types";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 
 /**
- * Next.js gives not-found.tsx no route params, so the server file passes both
- * languages' (small) messages and this client component picks the one that
- * matches the URL's [lang] segment.
+ * Next.js gives not-found.tsx no route params (useParams is empty there), so
+ * the server file passes every language's (small) messages and this client
+ * component picks the one matching the URL's locale prefix.
  */
 export function LocalizedNotFound({ messages }: { messages: Record<Locale, Dictionary["common"]["notFound"]> }) {
-  const params = useParams<{ lang?: string }>();
-  const lang = isLocale(params.lang) ? params.lang : fallbackLocale;
+  const [locale] = splitLocale(usePathname());
+  const lang = locale ?? fallbackLocale;
   const t = messages[lang];
 
   return (

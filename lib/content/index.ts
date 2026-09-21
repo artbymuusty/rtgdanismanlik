@@ -1,8 +1,9 @@
 import type { Dictionary, Locale } from "./types";
 import { tr } from "./tr";
 import { en } from "./en";
+import { de } from "./de";
 
-const dictionaries: Record<Locale, Dictionary> = { tr, en };
+const dictionaries: Record<Locale, Dictionary> = { tr, en, de };
 
 /**
  * Dictionaries are plain, serializable data (no functions), so server

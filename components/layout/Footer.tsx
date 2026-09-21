@@ -59,7 +59,7 @@ export function Footer({ lang }: { lang: Locale }) {
           <ul className="mt-3 flex flex-col gap-2 text-sm">
             {navLinks.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="text-ink/80 transition-colors hover:text-accent active:opacity-60">
+                <Link href={link.href} className="-my-2 block py-2 text-ink/80 transition-colors hover:text-accent active:opacity-60">
                   {link.label}
                 </Link>
               </li>
@@ -72,7 +72,7 @@ export function Footer({ lang }: { lang: Locale }) {
           <ul className="mt-3 flex flex-col gap-2 text-sm">
             {t.footer.legalLinks.map((link) => (
               <li key={link.route}>
-                <Link href={localizedPath(lang, link.route)} className="text-ink/80 transition-colors hover:text-accent active:opacity-60">
+                <Link href={localizedPath(lang, link.route)} className="-my-2 block py-2 text-ink/80 transition-colors hover:text-accent active:opacity-60">
                   {link.label}
                 </Link>
               </li>

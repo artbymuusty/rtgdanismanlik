@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { NavLink } from "@/components/layout/NavLink";
 import { cn } from "@/lib/cn";
@@ -14,11 +14,14 @@ export function MobileMenu({
   links,
   ctaLabel,
   ctaHref,
+  languageSwitcher,
   labels,
 }: {
   links: NavLinkItem[];
   ctaLabel: string;
   ctaHref: string;
+  /** Shown inside the panel below `sm`, where the header has no room for it. */
+  languageSwitcher?: ReactNode;
   labels: { open: string; close: string; buttonOpen: string; buttonClose: string; nav: string };
 }) {
   const [open, setOpen] = useState(false);
@@ -52,7 +55,7 @@ export function MobileMenu({
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative lg:hidden">
+    <div ref={containerRef} className="relative xl:hidden">
       <button
         ref={toggleRef}
         type="button"
@@ -77,7 +80,7 @@ export function MobileMenu({
               href={link.href}
               onClick={() => setOpen(false)}
               underline={false}
-              className="rounded-[3px] px-3 py-2.5 hover:bg-paper-raised"
+              className="rounded-[3px] px-3 py-3 hover:bg-paper-raised"
             >
               {link.label}
             </NavLink>
@@ -88,6 +91,9 @@ export function MobileMenu({
             {ctaLabel}
           </Button>
         </div>
+        {languageSwitcher ? (
+          <div className="flex justify-center border-t border-line p-3 sm:hidden">{languageSwitcher}</div>
+        ) : null}
       </div>
     </div>
   );

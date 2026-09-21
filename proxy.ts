@@ -8,12 +8,12 @@ import { internalPath, localizedPath, routeKeyFromPath, routes, splitLocale } fr
  *
  *  - No locale in the URL (/, /basvuru, /how-we-help …): pick the visitor's
  *    language (cookie → country → safe fallback, see detect.ts) and
- *    redirect to the same page under /tr or /en. Temporary + no-store,
+ *    redirect to the same page under /tr, /en or /de. Temporary + no-store,
  *    because the answer differs per visitor.
- *  - /en/<english-slug>: rewritten to the folder that implements the page
- *    (app/[lang]/<turkish-folder>), so English URLs are English while the
- *    code has one implementation per page.
- *  - The other language's slug under a locale (/en/basvuru, /tr/how-we-help)
+ *  - /en/<english-slug>, /de/<german-slug>: rewritten to the folder that
+ *    implements the page (app/[lang]/<turkish-folder>), so each language's
+ *    URLs are in that language while the code has one implementation per page.
+ *  - Another language's slug under a locale (/en/basvuru, /de/how-we-help)
  *    is redirected to the canonical slug — no duplicate URLs.
  */
 export function proxy(request: NextRequest) {

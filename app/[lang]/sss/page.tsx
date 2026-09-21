@@ -45,8 +45,8 @@ export default async function FaqPage({ params }: { params: LangParams }) {
               {t.items
                 .filter((item) => item.category === category)
                 .map((item) => (
-                  <details key={item.question} className="group py-5">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-lg font-medium transition-colors hover:text-accent">
+                  <details key={item.question} className="group">
+                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 py-5 font-display text-lg font-medium transition-colors hover:text-accent">
                       {item.question}
                       <span className="shrink-0 text-muted transition-transform duration-200 group-open:rotate-45 group-open:text-accent">
                         +
@@ -54,7 +54,7 @@ export default async function FaqPage({ params }: { params: LangParams }) {
                     </summary>
                     <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out group-open:grid-rows-[1fr]">
                       <div className="overflow-hidden">
-                        <p className="mt-3 text-muted">{item.answer}</p>
+                        <p className="pb-5 text-muted">{item.answer}</p>
                       </div>
                     </div>
                   </details>

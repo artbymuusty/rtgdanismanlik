@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-import { useParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { errorMessages } from "@/lib/content/error-messages";
-import { fallbackLocale, isLocale } from "@/lib/i18n/config";
-import { localizedPath } from "@/lib/i18n/routes";
+import { fallbackLocale } from "@/lib/i18n/config";
+import { localizedPath, splitLocale } from "@/lib/i18n/routes";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  const params = useParams<{ lang?: string }>();
-  const lang = isLocale(params.lang) ? params.lang : fallbackLocale;
+  const [locale] = splitLocale(usePathname());
+  const lang = locale ?? fallbackLocale;
   const t = errorMessages[lang];
 
   useEffect(() => {

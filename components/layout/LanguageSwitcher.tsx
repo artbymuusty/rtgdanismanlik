@@ -6,7 +6,7 @@ import { switchLocalePath } from "@/lib/i18n/routes";
 import { cn } from "@/lib/cn";
 
 /**
- * TR | EN toggle. Country detection can be wrong (a Turkish student living
+ * TR | EN | DE toggle. Country detection can be wrong (a Turkish student living
  * in Germany, a German reading the Turkish site), so the visitor can always
  * pick a language; the choice is stored in a cookie that proxy.ts honours
  * ahead of any automatic detection on later visits.
@@ -27,7 +27,7 @@ export function LanguageSwitcher({
       {locales.map((locale) => {
         const isCurrent = locale === lang;
         const classes = cn(
-          "flex h-8 min-w-9 items-center justify-center rounded-full px-2.5 font-mono uppercase tracking-[0.06em] transition-colors",
+          "flex h-10 min-w-10 items-center justify-center rounded-full px-2.5 font-mono uppercase tracking-[0.06em] transition-colors",
           isCurrent ? "bg-accent text-accent-ink" : "text-ink hover:text-accent active:opacity-60",
         );
 

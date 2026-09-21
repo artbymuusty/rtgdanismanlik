@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { getDictionary } from "@/lib/content";
-import { fallbackLocale, isLocale, locales } from "@/lib/i18n/config";
+import { fallbackLocale, htmlLang, isLocale, locales } from "@/lib/i18n/config";
 import { siteConfig } from "@/lib/site-config";
 
 export const alt = siteConfig.name;
@@ -21,8 +21,8 @@ export default async function Image({ params }: { params: Promise<{ lang: string
   const lang = isLocale(rawLang) ? rawLang : fallbackLocale;
   const t = getDictionary(lang);
   const [bold, italic] = await Promise.all([frauncesBold, frauncesItalic]);
-  // Upper-cased here (not with CSS) so Turkish "i" correctly becomes "İ".
-  const eyebrow = t.meta.ogEyebrow.toLocaleUpperCase(lang === "tr" ? "tr-TR" : "en-US");
+  // Upper-cased here (not with CSS) so Turkish "i" becomes "İ" and German "ß" becomes "SS".
+  const eyebrow = t.meta.ogEyebrow.toLocaleUpperCase(htmlLang[lang]);
 
   return new ImageResponse(
     (

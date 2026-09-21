@@ -1,8 +1,9 @@
 /**
- * The site's two languages. Turkish is the original language of every page;
- * English is shown to visitors from outside Türkiye (see detect.ts).
+ * The site's three languages. Turkish is the original language of every
+ * page; German is shown to visitors from Germany, Austria and Switzerland,
+ * English to everyone else outside Türkiye (see detect.ts).
  */
-export const locales = ["tr", "en"] as const;
+export const locales = ["tr", "en", "de"] as const;
 export type Locale = (typeof locales)[number];
 
 /** Used when a request carries no usable country signal — including crawlers.
@@ -20,6 +21,6 @@ export function isLocale(value: unknown): value is Locale {
 }
 
 /** BCP 47 tag for <html lang>, Open Graph and date formatting. */
-export const htmlLang: Record<Locale, string> = { tr: "tr", en: "en" };
-export const ogLocale: Record<Locale, string> = { tr: "tr_TR", en: "en_US" };
-export const dateLocale: Record<Locale, string> = { tr: "tr-TR", en: "en-GB" };
+export const htmlLang: Record<Locale, string> = { tr: "tr", en: "en", de: "de" };
+export const ogLocale: Record<Locale, string> = { tr: "tr_TR", en: "en_US", de: "de_DE" };
+export const dateLocale: Record<Locale, string> = { tr: "tr-TR", en: "en-GB", de: "de-DE" };

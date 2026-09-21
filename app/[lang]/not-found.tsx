@@ -7,6 +7,7 @@ export default function NotFound() {
       messages={{
         tr: getDictionary("tr").common.notFound,
         en: getDictionary("en").common.notFound,
+        de: getDictionary("de").common.notFound,
       }}
     />
   );

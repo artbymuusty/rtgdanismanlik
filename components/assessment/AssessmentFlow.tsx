@@ -209,7 +209,7 @@ export function AssessmentFlow({
                 type="text"
                 value={answers.referralSourceOther ?? ""}
                 onChange={(event) => setAnswers((prev) => ({ ...prev, referralSourceOther: event.target.value }))}
-                className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-sm text-ink outline-none focus-visible:border-accent"
+                className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-base text-ink outline-none focus-visible:border-accent sm:text-sm"
               />
             </div>
           ) : null}
@@ -309,7 +309,7 @@ function QuestionStep({
             onChange={(event) => onChange(event.target.value)}
             placeholder={placeholder}
             rows={4}
-            className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-sm text-ink outline-none focus-visible:border-accent"
+            className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-base text-ink outline-none focus-visible:border-accent sm:text-sm"
           />
         </div>
       )}
@@ -417,7 +417,7 @@ function TextField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         required
-        className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-sm text-ink outline-none focus-visible:border-accent"
+        className="w-full rounded-[3px] border border-line bg-paper px-4 py-3 text-base text-ink outline-none focus-visible:border-accent sm:text-sm"
       />
     </div>
   );

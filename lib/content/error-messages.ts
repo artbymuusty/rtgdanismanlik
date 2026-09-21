@@ -24,4 +24,11 @@ export const errorMessages: Record<
     retry: "Try Again",
     home: "Back to Home",
   },
+  de: {
+    eyebrow: "Etwas ist schiefgelaufen",
+    title: "Es gab ein Problem beim Laden dieser Seite.",
+    description: "Du kannst es erneut versuchen oder zur Startseite zurückkehren.",
+    retry: "Erneut versuchen",
+    home: "Zur Startseite",
+  },
 };

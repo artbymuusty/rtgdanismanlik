@@ -127,7 +127,7 @@ export interface Dictionary {
     sampleAccount: string;
     honeypotLabel: string;
     languageLabel: string;
-    languageNames: { tr: string; en: string };
+    languageNames: Record<Locale, string>;
     notFound: { eyebrow: string; title: string; description: string; home: string; contact: string };
     error: { eyebrow: string; title: string; description: string; retry: string; home: string };
   };

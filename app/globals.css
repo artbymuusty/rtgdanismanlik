@@ -61,3 +61,35 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* German compounds ("Studentenerfolgsgeschichten", "Datenschutzerklärung") are
+   far longer than Turkish/English words. Body text and smaller headings may
+   hyphenate; the large page/hero title (h1) only hyphenates on phones, where
+   a long compound would otherwise overflow, so desktop hero copy is never
+   split mid-word ("Studi-um"). overflow-wrap is the last-resort safety net. */
+html[lang="de"] h1,
+html[lang="de"] h2,
+html[lang="de"] h3,
+html[lang="de"] p,
+html[lang="de"] summary,
+html[lang="de"] li {
+  overflow-wrap: break-word;
+}
+
+html[lang="de"] h2,
+html[lang="de"] h3,
+html[lang="de"] p,
+html[lang="de"] summary,
+html[lang="de"] li {
+  hyphens: auto;
+}
+
+html[lang="de"] h1 {
+  hyphens: manual;
+}
+
+@media (max-width: 639px) {
+  html[lang="de"] h1 {
+    hyphens: auto;
+  }
+}

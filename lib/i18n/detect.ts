@@ -12,12 +12,17 @@ export interface LocaleSignals {
  * Order, first match wins:
  *   1. An explicit earlier choice (cookie) — always respected.
  *   2. Country is Türkiye → Turkish.
- *   3. Any known non-Türkiye country → English.
- *   4. No country signal (including crawlers) → Turkish, the safe fallback.
+ *   3. Country is Germany, Austria, or Switzerland → German.
+ *   4. Any other known country → English.
+ *   5. No country signal (including crawlers) → Turkish, the safe fallback.
  */
 export function detectLocale({ cookie, country }: LocaleSignals): Locale {
   if (isLocale(cookie)) return cookie;
-  if (country && country.trim().toUpperCase() === "TR") return "tr";
-  if (country) return "en";
+
+  const code = country?.trim().toUpperCase();
+  if (code === "TR") return "tr";
+  if (code === "DE" || code === "AT" || code === "CH") return "de";
+  if (code) return "en";
+
   return fallbackLocale;
 }

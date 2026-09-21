@@ -30,7 +30,7 @@ export const tr: Dictionary = {
     sampleAccount: "örnek hesap",
     honeypotLabel: "Şirket",
     languageLabel: "Dil",
-    languageNames: { tr: "Türkçe", en: "English" },
+    languageNames: { tr: "Türkçe", en: "English", de: "Deutsch" },
     notFound: {
       eyebrow: "404",
       title: "Aradığın sayfayı bulamadık.",

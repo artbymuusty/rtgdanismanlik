@@ -5,7 +5,7 @@ import { pageMetadata } from "@/lib/i18n/metadata";
 import { localizedPath } from "@/lib/i18n/routes";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
-import { EditorialPhoto } from "@/components/ui/EditorialPhoto";
+import { ServiceIllustration } from "@/components/ui/ServiceIllustration";
 import { cn } from "@/lib/cn";
 
 export async function generateMetadata({ params }: { params: LangParams }): Promise<Metadata> {
@@ -41,7 +41,7 @@ export default async function ServicesPage({ params }: { params: LangParams }) {
                 )}
               >
                 <div className={cn("relative", reverse && "lg:order-2")}>
-                  <EditorialPhoto alt={service.title} ratio="4 / 3" />
+                  <ServiceIllustration slug={service.slug} label={service.title} />
                   <span className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-line bg-paper/90 font-mono text-xs text-gold">
                     {String(index + 1).padStart(2, "0")}
                   </span>
