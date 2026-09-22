@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { FIELDS, GROUP_LABELS, enumLabel } from "@/lib/crm/fields";
 import { isoToday } from "@/lib/crm/query";
 import { CRM_STATUSES, type CrmColumn, type CrmQuery, type DateRangeFilter } from "@/lib/crm/types";
-import { useDismiss } from "./hooks";
+import { useDismiss, usePopoverPosition } from "./hooks";
 import { StatusBadge } from "./StatusSelect";
 import { cn } from "@/lib/cn";
 
@@ -43,7 +43,9 @@ export function FilterPanel({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   useDismiss([ref], () => setOpen(false), open);
+  const popoverStyle = usePopoverPosition(open, ref, panelRef);
 
   const filterFields = useMemo(() => FIELDS.filter((f) => f.filterable && f.column !== "Başvuru Tarihi"), []);
   const count = activeFilterCount({ filters, dateFilter });
@@ -81,7 +83,11 @@ export function FilterPanel({
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-full z-50 mt-2 flex max-h-[75vh] w-80 flex-col overflow-hidden rounded-[3px] border border-line bg-paper shadow-lg">
+        <div
+          ref={panelRef}
+          style={popoverStyle}
+          className="z-50 flex max-h-[75vh] w-80 max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-[3px] border border-line bg-paper shadow-lg"
+        >
           <div className="flex items-center justify-between border-b border-line px-3 py-2">
             <p className="text-sm font-medium text-ink">Filtreler</p>
             {count > 0 ? (

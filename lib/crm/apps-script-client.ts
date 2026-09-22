@@ -55,7 +55,17 @@ export async function callCrmAction<T = Record<string, unknown>>(
       return { ok: false, error: "apps_script_unavailable" };
     }
 
-    return data as CrmScriptResult<T>;
+    const result = data as CrmScriptResult<T>;
+    // The error CODE is always one of Code.gs's own fixed string literals
+    // (see the doc comment on crmErrorMessage) — never request/response
+    // body content, so it's safe to log as-is. This is the one line that
+    // makes an Apps Script-side failure (e.g. an uncaught exception
+    // collapsed to "internal_error" by doPost's catch-all) visible in
+    // Vercel's logs without needing Apps Script Execution-log access.
+    if (!result.ok) {
+      console.error(`[crm] action failed: ${type} error=${result.error}`);
+    }
+    return result;
   } catch (err) {
     const isAbort = err instanceof Error && err.name === "AbortError";
     console.error(`[crm] request failed: ${isAbort ? "timeout" : "network error"} (action ${type})`);

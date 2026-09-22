@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { CRM_COLUMNS, type CrmColumn } from "@/lib/crm/types";
 import { DEFAULT_VISIBLE_COLUMNS } from "@/lib/crm/fields";
-import { useLocalStorageState, useDismiss } from "./hooks";
+import { useLocalStorageState, useDismiss, usePopoverPosition } from "./hooks";
 
 const STORAGE_KEY = "rtg-crm-columns-v2";
 
@@ -19,7 +19,9 @@ export function useVisibleColumns(): [CrmColumn[], (next: CrmColumn[]) => void] 
 export function ColumnsMenu({ visible, onChange }: { visible: CrmColumn[]; onChange: (next: CrmColumn[]) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   useDismiss([ref], () => setOpen(false), open);
+  const popoverStyle = usePopoverPosition(open, ref, panelRef);
 
   const hidden = CRM_COLUMNS.filter((c) => !visible.includes(c));
 
@@ -49,7 +51,11 @@ export function ColumnsMenu({ visible, onChange }: { visible: CrmColumn[]; onCha
         Sütunlar
       </button>
       {open ? (
-        <div className="absolute right-0 top-full z-50 mt-2 max-h-[70vh] w-72 overflow-y-auto rounded-[3px] border border-line bg-paper p-3 shadow-lg">
+        <div
+          ref={panelRef}
+          style={popoverStyle}
+          className="z-50 max-h-[70vh] w-72 max-w-[calc(100vw-24px)] overflow-y-auto rounded-[3px] border border-line bg-paper p-3 shadow-lg"
+        >
           <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">Görünür</p>
           <ul className="mt-1.5 flex flex-col gap-0.5">
             {visible.map((column, i) => (

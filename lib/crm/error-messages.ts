@@ -37,9 +37,19 @@ const MESSAGES: Record<string, string> = {
   invalid_fields: "Gönderilen alanlar geçersiz.",
 };
 
+/**
+ * Every code below comes from a fixed enum-like string literal in Code.gs
+ * or this app's own server actions — never user input, never PII, never a
+ * secret — so it's always safe to surface verbatim. For an UNMAPPED code
+ * (a bug, a Code.gs code added on one side but not mirrored here, or an
+ * Apps Script runtime exception collapsed to "internal_error" by doPost's
+ * catch-all) the raw code is appended rather than swallowed into a bare
+ * "something went wrong": that's the one clue anyone has to diagnose it
+ * without Apps Script Execution-log access.
+ */
 export function crmErrorMessage(code: string | undefined | null): string {
   if (!code) return "Beklenmeyen bir hata oluştu.";
-  return MESSAGES[code] ?? "Beklenmeyen bir hata oluştu. Tekrar dene.";
+  return MESSAGES[code] ?? `Beklenmeyen bir hata oluştu (kod: ${code}). Tekrar dene.`;
 }
 
 export function isSessionError(code: string | undefined | null): boolean {

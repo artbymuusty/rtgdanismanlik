@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { CRM_COLUMNS, type CrmColumn, type SortDirection } from "@/lib/crm/types";
-import { useDismiss } from "./hooks";
+import { useDismiss, usePopoverPosition } from "./hooks";
 import { cn } from "@/lib/cn";
 
 /**
@@ -22,7 +22,9 @@ export function SortMenu({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   useDismiss([ref], () => setOpen(false), open);
+  const popoverStyle = usePopoverPosition(open, ref, panelRef);
 
   return (
     <div ref={ref} className="relative">
@@ -40,7 +42,13 @@ export function SortMenu({
       </button>
 
       {open ? (
-        <div role="listbox" aria-label="Sıralama sütunu" className="absolute right-0 top-full z-50 mt-2 max-h-[70vh] w-64 overflow-y-auto rounded-[3px] border border-line bg-paper p-1.5 shadow-lg">
+        <div
+          ref={panelRef}
+          style={popoverStyle}
+          role="listbox"
+          aria-label="Sıralama sütunu"
+          className="z-50 max-h-[70vh] w-64 max-w-[calc(100vw-24px)] overflow-y-auto rounded-[3px] border border-line bg-paper p-1.5 shadow-lg"
+        >
           <div className="flex gap-1 border-b border-line px-1.5 pb-1.5">
             {(["asc", "desc"] as const).map((dir) => (
               <button

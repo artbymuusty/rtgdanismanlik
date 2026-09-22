@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 
 /**
  * Per-browser UI preference (visible columns, custom saved views, the
@@ -131,5 +131,57 @@ export function useDismiss(refs: React.RefObject<HTMLElement | null>[], onDismis
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- refs identity is stable per caller
   }, [active, onDismiss]);
+}
+
+/**
+ * Keeps a toolbar popover (Filtrele/Sırala/Sütunlar) inside the viewport
+ * instead of a fixed `right-0`/`w-80` combination that overflows off-screen
+ * whenever its trigger sits too close to the left edge (narrow viewports,
+ * or a trigger early in the toolbar). Positions the panel with `fixed`
+ * coordinates derived from the trigger's own bounding rect, clamped to stay
+ * within [margin, viewport - panelWidth - margin] horizontally and capped
+ * to the remaining vertical space so it never runs under the fold either.
+ *
+ * useLayoutEffect (not useEffect) so the first-open placement happens
+ * before paint — no visible jump from an unpositioned frame.
+ */
+export function usePopoverPosition(
+  open: boolean,
+  anchorRef: React.RefObject<HTMLElement | null>,
+  panelRef: React.RefObject<HTMLElement | null>,
+): React.CSSProperties {
+  const [style, setStyle] = useState<React.CSSProperties>({ visibility: "hidden" });
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const margin = 12;
+
+    function place() {
+      const anchor = anchorRef.current;
+      const panel = panelRef.current;
+      if (!anchor || !panel) return;
+      const a = anchor.getBoundingClientRect();
+      const panelWidth = panel.offsetWidth;
+      const maxLeft = Math.max(margin, window.innerWidth - margin - panelWidth);
+      const left = Math.min(Math.max(a.right - panelWidth, margin), maxLeft);
+      const maxHeight = Math.max(200, window.innerHeight - a.bottom - margin);
+      setStyle({ position: "fixed", top: a.bottom + 6, left, maxHeight, visibility: "visible" });
+    }
+
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open, anchorRef, panelRef]);
+
+  // No separate "reset on close" effect: the panel unmounts whenever
+  // `open` is false (see each caller's `{open ? <div style={style}> : null}`),
+  // and the layout effect above recomputes a fresh position synchronously,
+  // before paint, the next time `open` becomes true — so a stale leftover
+  // style from the previous open can never actually be seen.
+  return style;
 }
 
