@@ -61,10 +61,10 @@ export interface SocialLinks {
 
 const NO_DEMO = { linkedin: false, instagram: false, x: false };
 
-/** Real accounts — empty until RTG has them (none exist yet, see above). */
+/** Real accounts — empty until RTG has them. */
 const REAL_SOCIAL_LINKS = {
   linkedinUrl: "",
-  instagramUrl: "",
+  instagramUrl: "https://www.instagram.com/rtgedu/",
   xUrl: "",
 };
 
