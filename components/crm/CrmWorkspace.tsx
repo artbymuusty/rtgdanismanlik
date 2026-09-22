@@ -280,7 +280,7 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
   return (
     <div className="flex h-dvh flex-col">
       <Topbar search={search} onSearchChange={setSearch} onRefresh={() => load(query, true)} refreshing={loading} searchRef={searchRef} />
-      <KpiStrip counts={meta.counts} />
+      <KpiStrip counts={meta.counts} onApply={applyQuickQuery} />
       <TodayPanel
         appliedToday={meta.today.appliedToday}
         awaitingFirstMeeting={meta.counts.byStatus[STATUS_NOT_MET] ?? 0}
@@ -375,6 +375,16 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
           onLeadRefreshed={(lead) => {
             setOpenLead(lead);
             setRows((prev) => prev.map((r) => (r.ID === lead.ID ? lead : r)));
+          }}
+          position={(() => {
+            const i = rows.findIndex((r) => r.ID === openLead.ID);
+            return i >= 0 ? { index: i, total: rows.length } : null;
+          })()}
+          onNavigate={(direction) => {
+            const i = rows.findIndex((r) => r.ID === openLead.ID);
+            if (i < 0) return;
+            const next = direction === "next" ? i + 1 : i - 1;
+            if (next >= 0 && next < rows.length) setOpenLead(rows[next]);
           }}
         />
       ) : null}

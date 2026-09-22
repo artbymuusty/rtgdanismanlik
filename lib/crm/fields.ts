@@ -42,7 +42,7 @@ export function enumLabel(column: CrmColumn, value: string): string {
 }
 
 export type ColumnWidth = "xs" | "sm" | "md" | "lg" | "xl";
-export type FieldGroup = "personal" | "education" | "goal" | "application" | "crm" | "system";
+export type FieldGroup = "personal" | "application" | "notes" | "management" | "source";
 
 export interface FieldMeta {
   column: CrmColumn;
@@ -71,29 +71,29 @@ const F = (partial: Omit<FieldMeta, "editable">): FieldMeta => ({
  * single place that decides table width, default visibility, filterability
  * and where a field lives in the detail drawer. */
 export const FIELDS: FieldMeta[] = [
-  F({ column: "ID", width: "sm", defaultVisible: true, searchable: true, filterable: false, inlineEditable: false, group: "system" }),
-  F({ column: "Başvuru Tarihi", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "system" }),
+  F({ column: "ID", width: "sm", defaultVisible: true, searchable: true, filterable: false, inlineEditable: false, group: "source" }),
+  F({ column: "Başvuru Tarihi", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "source" }),
   F({ column: "Ad", width: "sm", defaultVisible: true, searchable: true, filterable: false, inlineEditable: false, group: "personal" }),
   F({ column: "Soyad", width: "sm", defaultVisible: true, searchable: true, filterable: false, inlineEditable: false, group: "personal" }),
   F({ column: "Email", width: "lg", defaultVisible: true, searchable: true, filterable: false, inlineEditable: false, group: "personal" }),
   F({ column: "Telefon", width: "sm", defaultVisible: true, searchable: true, filterable: false, inlineEditable: false, group: "personal" }),
   F({ column: "Tercih Edilen İletişim", width: "sm", defaultVisible: false, searchable: false, filterable: true, inlineEditable: true, group: "personal" }),
-  F({ column: "Aşama", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: true, group: "education" }),
-  F({ column: "Eğitim Durumu", width: "sm", defaultVisible: false, searchable: false, filterable: true, inlineEditable: false, group: "education" }),
-  F({ column: "İlgi Alanı", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "education" }),
-  F({ column: "İngilizce Seviyesi", width: "xs", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "education" }),
-  F({ column: "Almanca Seviyesi", width: "xs", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "education" }),
-  F({ column: "Almanya Hedefi", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "goal" }),
-  F({ column: "Zaman Çizelgesi", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "goal" }),
-  F({ column: "Hakkında / Deneyim", width: "xl", defaultVisible: false, searchable: true, filterable: false, inlineEditable: false, group: "application", multiline: true }),
-  F({ column: "Mesaj", width: "xl", defaultVisible: false, searchable: true, filterable: false, inlineEditable: false, group: "application", multiline: true }),
-  F({ column: "Bizi Nereden Duydunuz", width: "sm", defaultVisible: false, searchable: false, filterable: false, inlineEditable: false, group: "application" }),
-  F({ column: "Sorumlu", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: true, group: "crm" }),
-  F({ column: "Durum", width: "md", defaultVisible: true, searchable: false, filterable: true, inlineEditable: true, group: "crm" }),
-  F({ column: "İlk Görüşme Tarihi", width: "sm", defaultVisible: true, searchable: false, filterable: false, inlineEditable: true, group: "crm" }),
-  F({ column: "Notlar", width: "xl", defaultVisible: true, searchable: true, filterable: false, inlineEditable: true, group: "crm", multiline: true }),
-  F({ column: "Mentor ID", width: "sm", defaultVisible: false, searchable: true, filterable: true, inlineEditable: true, group: "crm" }), // facet values come from the real Sheet (see computeFacets)
-  F({ column: "Drive Folder", width: "sm", defaultVisible: false, searchable: false, filterable: false, inlineEditable: false, group: "crm" }),
+  F({ column: "Aşama", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: true, group: "application" }),
+  F({ column: "Eğitim Durumu", width: "sm", defaultVisible: false, searchable: false, filterable: true, inlineEditable: false, group: "application" }),
+  F({ column: "İlgi Alanı", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "application" }),
+  F({ column: "İngilizce Seviyesi", width: "xs", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "application" }),
+  F({ column: "Almanca Seviyesi", width: "xs", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "application" }),
+  F({ column: "Almanya Hedefi", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "application" }),
+  F({ column: "Zaman Çizelgesi", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "application" }),
+  F({ column: "Hakkında / Deneyim", width: "xl", defaultVisible: false, searchable: true, filterable: false, inlineEditable: false, group: "notes", multiline: true }),
+  F({ column: "Mesaj", width: "xl", defaultVisible: false, searchable: true, filterable: false, inlineEditable: false, group: "notes", multiline: true }),
+  F({ column: "Bizi Nereden Duydunuz", width: "sm", defaultVisible: false, searchable: false, filterable: false, inlineEditable: false, group: "source" }),
+  F({ column: "Sorumlu", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: true, group: "management" }),
+  F({ column: "Durum", width: "md", defaultVisible: true, searchable: false, filterable: true, inlineEditable: true, group: "management" }),
+  F({ column: "İlk Görüşme Tarihi", width: "sm", defaultVisible: true, searchable: false, filterable: false, inlineEditable: true, group: "management" }),
+  F({ column: "Notlar", width: "xl", defaultVisible: true, searchable: true, filterable: false, inlineEditable: true, group: "notes", multiline: true }),
+  F({ column: "Mentor ID", width: "sm", defaultVisible: false, searchable: true, filterable: true, inlineEditable: true, group: "management" }), // facet values come from the real Sheet (see computeFacets)
+  F({ column: "Drive Folder", width: "sm", defaultVisible: false, searchable: false, filterable: false, inlineEditable: false, group: "management" }),
 ];
 
 export const FIELD_BY_COLUMN: Record<CrmColumn, FieldMeta> = Object.fromEntries(FIELDS.map((f) => [f.column, f])) as Record<
@@ -117,10 +117,9 @@ export const BADGE_COLUMNS: Partial<Record<CrmColumn, string>> = {
 };
 
 export const GROUP_LABELS: Record<FieldGroup, string> = {
-  personal: "Kişisel",
-  education: "Eğitim",
-  goal: "Almanya Hedefi",
+  personal: "Kimlik",
   application: "Başvuru",
-  crm: "CRM",
-  system: "Sistem",
+  notes: "Notlar",
+  management: "Yönetim",
+  source: "Kaynak",
 };

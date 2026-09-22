@@ -10,9 +10,9 @@ import type { ActivityEntry, CrmColumn, CrmLead, SnapshotInfo } from "@/lib/crm/
 import { Button } from "@/components/ui/Button";
 import type { CellSave } from "./EditableCells";
 import { useFocusTrap } from "./hooks";
-import { StatusSelect } from "./StatusSelect";
+import { StatusBadge, StatusSelect } from "./StatusSelect";
 
-const GROUP_ORDER: FieldGroup[] = ["personal", "education", "goal", "application", "crm", "system"];
+const GROUP_ORDER: FieldGroup[] = ["personal", "application", "notes", "management"];
 
 function DrawerField({ meta, value, onSave, statuses, team }: { meta: FieldMeta; value: string; onSave: CellSave; statuses: readonly string[]; team: string[] }) {
   const [draft, setDraft] = useState(value);
@@ -152,6 +152,8 @@ export function LeadDrawer({
   onClose,
   onSave,
   onLeadRefreshed,
+  position,
+  onNavigate,
 }: {
   lead: CrmLead;
   statuses: readonly string[];
@@ -159,6 +161,11 @@ export function LeadDrawer({
   onClose: () => void;
   onSave: (column: CrmColumn, value: string) => ReturnType<CellSave>;
   onLeadRefreshed: (lead: CrmLead) => void;
+  /** Current row's position in the currently-loaded (filtered/sorted) page,
+   * for the "← Önceki 3 / 12 Sonraki →" strip — omitted when the lead isn't
+   * part of the visible rows (e.g. opened right after a create). */
+  position?: { index: number; total: number } | null;
+  onNavigate?: (direction: "prev" | "next") => void;
 }) {
   const [snapshot, setSnapshot] = useState<SnapshotInfo | null>(null);
   const [activity, setActivity] = useState<ActivityEntry[] | null>(null);
@@ -212,11 +219,38 @@ export function LeadDrawer({
             <p className="truncate font-display text-xl font-semibold text-ink">
               {lead.Ad} {lead.Soyad}
             </p>
-            <p className="font-mono text-xs text-muted">{lead.ID}</p>
+            <StatusBadge status={lead.Durum} />
           </div>
-          <button type="button" onClick={onClose} aria-label="Kapat" className="shrink-0 rounded-[3px] border border-line px-3 py-1.5 text-sm text-ink hover:border-accent">
-            Kapat
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            {position && onNavigate ? (
+              <div className="flex items-center gap-1 rounded-[3px] border border-line text-sm text-ink">
+                <button
+                  type="button"
+                  onClick={() => onNavigate("prev")}
+                  disabled={position.index <= 0}
+                  aria-label="Önceki lead"
+                  className="rounded-l-[2px] px-2 py-1.5 hover:bg-paper-raised disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  ←
+                </button>
+                <span className="border-x border-line px-1.5 font-mono text-[11px] text-muted">
+                  {position.index + 1} / {position.total}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onNavigate("next")}
+                  disabled={position.index >= position.total - 1}
+                  aria-label="Sonraki lead"
+                  className="rounded-r-[2px] px-2 py-1.5 hover:bg-paper-raised disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  →
+                </button>
+              </div>
+            ) : null}
+            <button type="button" onClick={onClose} aria-label="Kapat" className="rounded-[3px] border border-line px-3 py-1.5 text-sm text-ink hover:border-accent">
+              Kapat
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2 border-b border-line px-5 py-3">
@@ -239,41 +273,47 @@ export function LeadDrawer({
                 {FIELDS.filter((f) => f.group === group).map((meta) => (
                   <DrawerField key={meta.column} meta={meta} value={lead[meta.column]} onSave={(v) => onSave(meta.column, v)} statuses={statuses} team={team} />
                 ))}
-                {group === "application" ? (
-                  <div>
-                    <span className="mb-1.5 block text-sm font-medium text-ink">Kaynak Detayı</span>
-                    <p className="text-sm text-ink">{snapshot?.sourceDetail || "—"}</p>
-                    <p className="mt-1 text-xs text-muted">Sadece “Diğer” seçildiğinde doldurulur; RAW oluşana kadar burada, sonrasında LEADS_RAW&apos;da tutulur.</p>
-                  </div>
-                ) : null}
-                {group === "system" ? (
-                  <>
-                    <div>
-                      <span className="mb-1.5 block text-sm font-medium text-ink">Submission ID</span>
-                      <p className="break-all font-mono text-xs text-muted">{snapshot?.submissionId || "—"}</p>
-                    </div>
-                    <div>
-                      <span className="mb-1.5 block text-sm font-medium text-ink">Source</span>
-                      <p className="text-sm text-ink">{snapshot?.source || "—"}</p>
-                    </div>
-                  </>
-                ) : null}
               </div>
             </section>
           ))}
 
+          {/* Kaynak: where the lead came from, plus the one-time LEADS_RAW
+              snapshot fact — grouped together since both answer "where did
+              this profile originate", never editable here. */}
           <section className="mb-6 rounded-[3px] border border-line bg-paper-raised p-4">
-            <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-gold">LEADS_RAW Snapshot</p>
-            {snapshot === null ? (
-              <p className="mt-2 text-sm text-muted">Yükleniyor...</p>
-            ) : snapshot.exists ? (
-              <div className="mt-2 space-y-1 text-sm text-ink">
-                <p>Snapshot oluşturuldu{snapshot.date ? ` — ${formatCrmDate(snapshot.date)}` : ""}.</p>
-                {snapshot.legacy ? <p className="text-xs text-muted">Bu kayıt eski akışta, başvuru anında oluşturulmuş (legacy). Bağımsız yaşamaya devam ediyor.</p> : null}
+            <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-gold">{GROUP_LABELS.source}</p>
+            <div className="mt-3 flex flex-col gap-3 text-sm">
+              <div>
+                <span className="mb-1 block text-xs font-medium text-muted">Bizi Nereden Duydunuz</span>
+                <p className="text-ink">{lead["Bizi Nereden Duydunuz"] || "—"}</p>
               </div>
-            ) : (
-              <p className="mt-2 text-sm text-muted">Henüz oluşturulmadı — Durum “İlk görüşme yapıldı” olduğunda bir kez oluşturulacak.</p>
-            )}
+              {lead["Bizi Nereden Duydunuz"] === "Diğer" || snapshot?.sourceDetail ? (
+                <div>
+                  <span className="mb-1 block text-xs font-medium text-muted">Kaynak Detayı</span>
+                  <p className="text-ink">{snapshot?.sourceDetail || "—"}</p>
+                </div>
+              ) : null}
+              <div>
+                <span className="mb-1 block text-xs font-medium text-muted">Başvuru Tarihi</span>
+                <p className="text-ink">{formatCrmDate(lead["Başvuru Tarihi"]) || "—"}</p>
+              </div>
+              <div className="border-t border-line pt-3">
+                {snapshot === null ? (
+                  <p className="text-muted">Snapshot bilgisi yükleniyor...</p>
+                ) : snapshot.exists ? (
+                  <div className="space-y-1 text-ink">
+                    <p>LEADS_RAW snapshot oluşturuldu{snapshot.date ? ` — ${formatCrmDate(snapshot.date)}` : ""}.</p>
+                    {snapshot.legacy ? <p className="text-xs text-muted">Eski akışta, başvuru anında oluşturulmuş (legacy) — bağımsız yaşamaya devam ediyor.</p> : null}
+                  </div>
+                ) : (
+                  <p className="text-muted">Snapshot henüz yok — Durum “İlk görüşme yapıldı” olduğunda bir kez oluşturulacak.</p>
+                )}
+              </div>
+              <p className="break-all font-mono text-[10px] text-muted">
+                {lead.ID}
+                {snapshot?.source ? ` · ${snapshot.source}` : ""}
+              </p>
+            </div>
           </section>
 
           <section>
