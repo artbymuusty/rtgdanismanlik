@@ -194,6 +194,15 @@ function handleRequest(e) {
     return handleCrmRequest(body);
   }
 
+  // Contact page's "Bize yaz" composer (see the CONTACT COMPOSER section
+  // below). Entirely isolated from CRM/lead/mentor routing, lifecycle and
+  // sheets — it never touches LEADS_CRM/LEADS_RAW and carries no
+  // submissionId, so — like crm_* — it is routed here, before the
+  // public-form submissionId check.
+  if (body.type === "contact") {
+    return handleContactRequest(body);
+  }
+
   if (!body.submissionId || typeof body.submissionId !== "string") {
     Logger.log("[RTG handleRequest] rejected: missing_submission_id");
     return { ok: false, error: "missing_submission_id" };
@@ -407,6 +416,124 @@ function writeMentorApplication(body) {
     body.source || "rtg-website", body.submissionId
   ];
   sheet.appendRow(row);
+  return { ok: true, id: id };
+}
+
+// ===========================================================================
+// CONTACT COMPOSER  (type: "contact")
+//
+// The /iletisim page's "Bize yaz" form. Entirely isolated from the lead /
+// mentor_application / CRM code above and below: no sheet is ever read or
+// written here, no LEADS_CRM/LEADS_RAW row is created, no CRM lifecycle is
+// touched. It only sends one e-mail via Apps Script's own MailApp service
+// (built into the runtime — no external dependency, no new service to
+// configure or pay for) to the address in the CONTACT_EMAIL Script
+// Property — never hard-coded here, never sent by the client.
+// ===========================================================================
+
+var CONTACT_CATEGORIES = ["general", "consulting", "billing", "complaint", "technical", "website", "other"];
+
+// The staff-facing e-mail is always in Turkish (RTG's own working
+// language, same as CRM_AUDIT and every other internal artifact) —
+// independent of whatever language the visitor's site UI was in. That is
+// a separate, purely front-end concern (lib/content/*.ts's
+// contact.composer.categories).
+var CONTACT_CATEGORY_LABELS_TR = {
+  general: "Genel soru",
+  consulting: "Başvuru / Danışmanlık",
+  billing: "Ödeme / Faturalandırma",
+  complaint: "Şikayet",
+  technical: "Teknik / Sistem Sorunu",
+  website: "Web Sitesi Hatası",
+  other: "Diğer"
+};
+
+/** Strips control characters and line breaks from a single-line field
+ * (email, subject) — defense-in-depth against header-injection-style
+ * input, even though MailApp.sendEmail's structured parameters (not raw
+ * SMTP headers) already make that essentially impossible. The message
+ * body is cleaned separately (crmCleanText keeps its intentional
+ * newlines). */
+function contactCleanLine(value) {
+  return String(value).replace(/[\r\n\u0000-\u001F\u007F]/g, "").trim();
+}
+
+/**
+ * Validates every field server-side (never trusts the client's own
+ * validation), then sends the e-mail. Never writes to any sheet. Returns
+ * a specific error code on validation failure — the Next.js side always
+ * collapses it to one generic, locale-aware message for the visitor (see
+ * lib/contact/apps-script-client.ts) so no technical detail ever reaches
+ * them, but the specific code still helps diagnose a real failure from
+ * the Apps Script Execution log.
+ */
+function handleContactRequest(body) {
+  var email = typeof body.email === "string" ? contactCleanLine(body.email) : "";
+  var category = typeof body.category === "string" ? body.category : "";
+  var subject = typeof body.subject === "string" ? contactCleanLine(body.subject) : "";
+  var message = typeof body.message === "string" ? crmCleanText(body.message) : "";
+
+  if (!email || email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return { ok: false, error: "invalid_email" };
+  }
+  if (CONTACT_CATEGORIES.indexOf(category) === -1) {
+    return { ok: false, error: "invalid_category" };
+  }
+  if (!subject || subject.length > 160) {
+    return { ok: false, error: "invalid_subject" };
+  }
+  if (!message || message.length > 5000) {
+    return { ok: false, error: "invalid_message" };
+  }
+
+  var recipient = PropertiesService.getScriptProperties().getProperty("CONTACT_EMAIL");
+  if (!recipient) {
+    Logger.log("[RTG contact] rejected: CONTACT_EMAIL is not configured in Script Properties");
+    return { ok: false, error: "not_configured" };
+  }
+
+  var id = "RTG-CONTACT-" + Utilities.formatDate(new Date(), "Etc/UTC", "yyyyMMdd'T'HHmmss") +
+    "-" + Utilities.getUuid().replace(/-/g, "").slice(0, 6).toUpperCase();
+  var timestamp = Utilities.formatDate(new Date(), "Etc/UTC", "dd.MM.yyyy HH:mm '(UTC)'");
+  var categoryLabel = CONTACT_CATEGORY_LABELS_TR[category] || category;
+
+  var mailSubject = "[RTG İletişim] " + categoryLabel + " — " + subject;
+  var mailBody = [
+    "RTG DANIŞMANLIK",
+    "Yeni iletişim mesajı",
+    "",
+    "Gönderen:",
+    email,
+    "",
+    "Kategori:",
+    categoryLabel,
+    "",
+    "Konu:",
+    subject,
+    "",
+    "Mesaj:",
+    message,
+    "",
+    "Gönderim zamanı:",
+    timestamp,
+    "",
+    "Kaynak:",
+    "RTG Web Sitesi / İletişim",
+    "",
+    "Mesaj ID:",
+    id
+  ].join("\n");
+
+  try {
+    MailApp.sendEmail({ to: recipient, subject: mailSubject, body: mailBody, replyTo: email });
+  } catch (err) {
+    // Full exception (e.g. daily MailApp quota exceeded) goes only to the
+    // Execution log — never the visitor-facing PII-free error code.
+    Logger.log("[RTG contact] mail send failed: " + (err && err.name) + ": " + (err && err.message));
+    return { ok: false, error: "mail_send_failed" };
+  }
+
+  Logger.log("[RTG contact] sent ok id=" + id + " category=" + category);
   return { ok: true, id: id };
 }
 

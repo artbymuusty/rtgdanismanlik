@@ -66,13 +66,15 @@ class Sheet {
 
 function pad(n) { return String(n).padStart(2, "0"); }
 
-function makeEnv({ secretProp = SECRET, now = new Date("2026-09-21T10:30:00Z") } = {}) {
+function makeEnv({ secretProp = SECRET, now = new Date("2026-09-21T10:30:00Z"), contactEmail } = {}) {
   const logs = [];
   const toasts = [];
   const sheets = {};
-  const state = { now, lockBusy: false, locksTaken: 0, uuid: 0 };
+  const mails = [];
+  const state = { now, lockBusy: false, locksTaken: 0, uuid: 0, failMail: false };
   const props = { SPREADSHEET_ID: "sid" };
   if (secretProp) props.API_SECRET = secretProp;
+  if (contactEmail) props.CONTACT_EMAIL = contactEmail;
 
   const ss = {
     getSheetByName: (n) => sheets[n] || null,
@@ -97,6 +99,12 @@ function makeEnv({ secretProp = SECRET, now = new Date("2026-09-21T10:30:00Z") }
       }),
     },
     ContentService: { MimeType: { JSON: "json" }, createTextOutput: (t) => ({ text: t, setMimeType() { return this; } }) },
+    MailApp: {
+      sendEmail: (opts) => {
+        if (state.failMail) throw new Error("Service invoked too many times for one day: sendEmail");
+        mails.push(Object.assign({}, opts));
+      },
+    },
     Utilities: {
       // Only the two patterns Code.gs uses; fixed to UTC so tests are deterministic.
       formatDate: (d, _tz, fmt) => {
@@ -116,7 +124,7 @@ function makeEnv({ secretProp = SECRET, now = new Date("2026-09-21T10:30:00Z") }
     ctx,
   );
   vm.runInContext(SRC, ctx);
-  return { ctx, logs, toasts, sheets, ss, props, state };
+  return { ctx, logs, toasts, sheets, mails, ss, props, state };
 }
 
 const run = (env, expr) => vm.runInContext(expr, env.ctx);
@@ -146,6 +154,8 @@ const payload = (o = {}) => Object.assign({
 }, o);
 const SID = (n) => `a${n}cdef12-0000-0000-0000-000000000000`;
 const leadBody = (o = {}, sid = SID(1)) => Object.assign({ secret: SECRET, type: "lead", submissionId: sid, submittedAt: "2026-09-19T10:00:00Z", source: "rtg-website", payload: payload() }, o);
+const contactBody = (o = {}) =>
+  Object.assign({ secret: SECRET, type: "contact", email: "visitor@example.com", category: "general", subject: "Test subject", message: "Test message body." }, o);
 
 /** Simulates Apps Script receiving a POST: the same doPost() the web app runs. */
 function post(env, body) {
@@ -166,4 +176,4 @@ function uiEdit(env, row, name, value, oldValue) {
   env.ctx.onEdit({ range: sheet.getRange(row, c), value, oldValue, source: env.ss });
 }
 
-module.exports = { SECRET, WRONG, Sheet, makeEnv, fresh, run, plain, payload, SID, leadBody, post, crm, col, cell, dataRows, uiEdit };
+module.exports = { SECRET, WRONG, Sheet, makeEnv, fresh, run, plain, payload, SID, leadBody, contactBody, post, crm, col, cell, dataRows, uiEdit };

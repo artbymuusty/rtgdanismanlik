@@ -318,6 +318,32 @@ export interface Dictionary {
     formCta: { title: string; description: string; cta: string };
     photoCaption: string;
     photoAlt: string;
+    /** The in-page "write to us" composer — sends via Server Action +
+     * Apps Script's MailApp, never a mailto: link. Category KEYS
+     * (general/consulting/...) are fixed and locale-independent (see
+     * lib/validation/contact.ts); only their labels here are localized. */
+    composer: {
+      title: string;
+      description: string;
+      emailLabel: string;
+      emailPlaceholder: string;
+      categoryLabel: string;
+      categories: { general: string; consulting: string; billing: string; complaint: string; technical: string; website: string; other: string };
+      subjectLabel: string;
+      subjectPlaceholder: string;
+      messageLabel: string;
+      /** One placeholder per category — complaint/technical/website get a
+       * more specific prompt; the rest share the generic one. */
+      messagePlaceholders: { general: string; consulting: string; billing: string; complaint: string; technical: string; website: string; other: string };
+      honeypotLabel: string;
+      submit: string;
+      submitting: string;
+      successTitle: string;
+      successBody: string;
+      errorTitle: string;
+      errorBody: string;
+      retry: string;
+    };
   };
   bizeKatilin: {
     eyebrow: string;

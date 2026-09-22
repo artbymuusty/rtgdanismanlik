@@ -3,10 +3,11 @@ import { getDictionary } from "@/lib/content";
 import { getLang, type LangParams } from "@/lib/i18n/params";
 import { pageMetadata } from "@/lib/i18n/metadata";
 import { localizedPath } from "@/lib/i18n/routes";
-import { siteConfig, whatsappLinkFor } from "@/lib/site-config";
+import { whatsappLinkFor } from "@/lib/site-config";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { EditorialPhoto } from "@/components/ui/EditorialPhoto";
+import { ContactComposer } from "@/components/contact/ContactComposer";
 
 export async function generateMetadata({ params }: { params: LangParams }): Promise<Metadata> {
   const lang = await getLang(params);
@@ -19,12 +20,13 @@ export default async function ContactPage({ params }: { params: LangParams }) {
   const t = getDictionary(lang).contact;
   const whatsapp = whatsappLinkFor();
 
+  // No mailto: channel: the visitor writes directly through the composer
+  // below (Server Action -> Apps Script MailApp), never leaving the site
+  // or needing a mail client. WhatsApp stays — it's a real chat channel,
+  // not a "we couldn't build this properly" fallback.
   const channels = [
     whatsapp
       ? { key: "whatsapp", title: t.whatsapp.title, description: t.whatsapp.description, cta: t.whatsapp.cta, href: whatsapp }
-      : null,
-    siteConfig.contactEmail
-      ? { key: "email", title: t.email.title, description: t.email.description, cta: t.email.cta, href: `mailto:${siteConfig.contactEmail}` }
       : null,
   ].filter((c): c is NonNullable<typeof c> => c !== null);
 
@@ -55,6 +57,10 @@ export default async function ContactPage({ params }: { params: LangParams }) {
             <Button href={localizedPath(lang, "apply")} className="mt-5">
               {t.formCta.cta}
             </Button>
+          </div>
+
+          <div className="mt-10">
+            <ContactComposer dict={t.composer} lang={lang} />
           </div>
         </div>
 
