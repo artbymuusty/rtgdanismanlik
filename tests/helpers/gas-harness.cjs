@@ -104,6 +104,10 @@ function makeEnv({ secretProp = SECRET, now = new Date("2026-09-21T10:30:00Z"), 
         if (state.failMail) throw new Error("Service invoked too many times for one day: sendEmail");
         mails.push(Object.assign({}, opts));
       },
+      getRemainingDailyQuota: () => {
+        if (state.failMail) throw new Error("Service invoked too many times for one day: getRemainingDailyQuota");
+        return 100;
+      },
     },
     Utilities: {
       // Only the two patterns Code.gs uses; fixed to UTC so tests are deterministic.

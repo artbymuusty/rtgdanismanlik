@@ -460,12 +460,21 @@ function contactCleanLine(value) {
 
 /**
  * Validates every field server-side (never trusts the client's own
- * validation), then sends the e-mail. Never writes to any sheet. Returns
- * a specific error code on validation failure — the Next.js side always
- * collapses it to one generic, locale-aware message for the visitor (see
- * lib/contact/apps-script-client.ts) so no technical detail ever reaches
- * them, but the specific code still helps diagnose a real failure from
- * the Apps Script Execution log.
+ * validation), then sends the e-mail. Never writes to any sheet.
+ *
+ * Every error code is CONTACT_-prefixed and diagnosable WITHOUT Apps
+ * Script Execution-log access: lib/contact/apps-script-client.ts logs
+ * this exact code to Vercel's own function logs (`[contact] rejected:
+ * ...`) on every failure, since a well-formed {ok:false} JSON response
+ * is otherwise silently collapsed into one generic, locale-aware
+ * message for the visitor (see that file) — no technical detail ever
+ * reaches them, but the code always reaches Vercel's logs. A mail-send
+ * failure additionally appends the exception's own name/a short,
+ * PII-free slice of its message (Apps Script's own system text, e.g.
+ * "authorization required" or "daily quota exceeded" — never anything
+ * derived from the visitor's input) so the two most likely real causes —
+ * missing MailApp authorization vs. exhausted quota — are distinguishable
+ * from Vercel logs alone.
  */
 function handleContactRequest(body) {
   var email = typeof body.email === "string" ? contactCleanLine(body.email) : "";
@@ -474,22 +483,22 @@ function handleContactRequest(body) {
   var message = typeof body.message === "string" ? crmCleanText(body.message) : "";
 
   if (!email || email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    return { ok: false, error: "invalid_email" };
+    return { ok: false, error: "CONTACT_INVALID_EMAIL" };
   }
   if (CONTACT_CATEGORIES.indexOf(category) === -1) {
-    return { ok: false, error: "invalid_category" };
+    return { ok: false, error: "CONTACT_INVALID_CATEGORY" };
   }
   if (!subject || subject.length > 160) {
-    return { ok: false, error: "invalid_subject" };
+    return { ok: false, error: "CONTACT_INVALID_SUBJECT" };
   }
   if (!message || message.length > 5000) {
-    return { ok: false, error: "invalid_message" };
+    return { ok: false, error: "CONTACT_INVALID_MESSAGE" };
   }
 
   var recipient = PropertiesService.getScriptProperties().getProperty("CONTACT_EMAIL");
   if (!recipient) {
-    Logger.log("[RTG contact] rejected: CONTACT_EMAIL is not configured in Script Properties");
-    return { ok: false, error: "not_configured" };
+    Logger.log("[RTG contact] rejected: CONTACT_NOT_CONFIGURED (CONTACT_EMAIL Script Property is not set)");
+    return { ok: false, error: "CONTACT_NOT_CONFIGURED" };
   }
 
   var id = "RTG-CONTACT-" + Utilities.formatDate(new Date(), "Etc/UTC", "yyyyMMdd'T'HHmmss") +
@@ -527,14 +536,70 @@ function handleContactRequest(body) {
   try {
     MailApp.sendEmail({ to: recipient, subject: mailSubject, body: mailBody, replyTo: email });
   } catch (err) {
-    // Full exception (e.g. daily MailApp quota exceeded) goes only to the
-    // Execution log — never the visitor-facing PII-free error code.
-    Logger.log("[RTG contact] mail send failed: " + (err && err.name) + ": " + (err && err.message));
-    return { ok: false, error: "mail_send_failed" };
+    // Full exception goes to the Execution log (for whoever does have
+    // access to it), AND a short, PII-free diagnostic slice — the
+    // exception's own name/system message, never anything derived from
+    // email/subject/message — rides along in the returned code itself,
+    // so it reaches Vercel's logs even without any Apps Script access.
+    var exceptionName = (err && err.name) || "Error";
+    var exceptionHint = contactCleanLine(String((err && err.message) || "")).slice(0, 120);
+    Logger.log("[RTG contact] mail send failed: " + exceptionName + ": " + exceptionHint);
+    return { ok: false, error: "CONTACT_MAIL_SEND_FAILED:" + exceptionName + (exceptionHint ? " " + exceptionHint : "") };
   }
 
   Logger.log("[RTG contact] sent ok id=" + id + " category=" + category);
   return { ok: true, id: id };
+}
+
+/**
+ * MANUAL, DEVELOPER-ONLY diagnostic for MailApp authorization/delivery —
+ * never called from doPost, never reachable through any public endpoint,
+ * touches no production code path. Run it BY HAND from this editor
+ * (select "testContactMailAuthorization" in the function dropdown at the
+ * top, click Run) — that is the ONLY way to trigger Google's permission
+ * consent dialog for a scope (sending mail as this project) the script
+ * has never used before; an external Web App POST can never show that
+ * dialog, so a brand-new MailApp usage silently fails with an
+ * authorization error on every real request until this has been run
+ * and approved once.
+ *
+ * What it does, in order — logged to THIS run's own Execution log:
+ *   1. Confirms CONTACT_EMAIL is set (never logs its actual value).
+ *   2. Calls MailApp.getRemainingDailyQuota() — a safe capability check
+ *      that alone can trigger the authorization prompt.
+ *   3. Sends one real test e-mail to CONTACT_EMAIL, so you can directly
+ *      confirm delivery end-to-end, independent of the contact form.
+ *
+ * If step 2 or 3 pops up an authorization screen, approve it, then run
+ * this function again to confirm it now succeeds — after that, the real
+ * contact form will work too, since project-level authorization isn't
+ * per-deployment.
+ */
+function testContactMailAuthorization() {
+  var recipient = PropertiesService.getScriptProperties().getProperty("CONTACT_EMAIL");
+  Logger.log("[RTG contact test] CONTACT_EMAIL is " + (recipient ? "set." : "NOT SET — add it in Project Settings > Script Properties first, then re-run this."));
+  if (!recipient) return;
+
+  try {
+    var quota = MailApp.getRemainingDailyQuota();
+    Logger.log("[RTG contact test] MailApp.getRemainingDailyQuota() ok — remaining quota: " + quota);
+  } catch (err) {
+    Logger.log("[RTG contact test] getRemainingDailyQuota() FAILED: " + (err && err.name) + ": " + (err && err.message));
+    Logger.log("[RTG contact test] This is very likely an authorization prompt waiting for your approval — check for a permissions dialog, approve it, then run this function again.");
+    return;
+  }
+
+  try {
+    MailApp.sendEmail({
+      to: recipient,
+      subject: "[RTG İletişim] Test — Apps Script yetkilendirme kontrolü",
+      body: "Bu, testContactMailAuthorization() tarafından gönderilen manuel bir test e-postasıdır.\n\nBu e-postayı görüyorsan MailApp bu proje için doğru şekilde yetkilendirilmiş ve CONTACT_EMAIL'e teslimat çalışıyor demektir — production /iletisim formu da artık çalışmalı."
+    });
+    Logger.log("[RTG contact test] MailApp.sendEmail() succeeded — check the CONTACT_EMAIL inbox (and spam folder) now.");
+  } catch (err) {
+    Logger.log("[RTG contact test] MailApp.sendEmail() FAILED: " + (err && err.name) + ": " + (err && err.message));
+    Logger.log("[RTG contact test] If this mentions authorization/permission, approve the consent dialog if one appeared, then re-run this function.");
+  }
 }
 
 /**

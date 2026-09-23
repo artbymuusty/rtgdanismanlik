@@ -40,12 +40,12 @@ test("subject and body carry category, subject, message, timestamp and message I
   assert.match(mail.body, new RegExp(r.id));
 });
 
-test("invalid email: rejected, no mail sent", () => {
+test("invalid email: rejected with a CONTACT_-prefixed diagnostic code, no mail sent", () => {
   const env = freshWithMail();
   const before = env.mails.length;
   const r = H.post(env, H.contactBody({ email: "not-an-email" }));
   assert.equal(r.ok, false);
-  assert.equal(r.error, "invalid_email");
+  assert.equal(r.error, "CONTACT_INVALID_EMAIL");
   assert.equal(env.mails.length, before);
 });
 
@@ -54,21 +54,21 @@ test("email over 254 characters: rejected", () => {
   const long = "a".repeat(250) + "@x.com"; // > 254 chars total
   const r = H.post(env, H.contactBody({ email: long }));
   assert.equal(r.ok, false);
-  assert.equal(r.error, "invalid_email");
+  assert.equal(r.error, "CONTACT_INVALID_EMAIL");
 });
 
-test("empty fields: each required field rejected on its own", () => {
+test("empty fields: each required field rejected on its own, with its own diagnostic code", () => {
   const env = freshWithMail();
-  assert.equal(H.post(env, H.contactBody({ email: "" })).error, "invalid_email");
-  assert.equal(H.post(env, H.contactBody({ subject: "" })).error, "invalid_subject");
-  assert.equal(H.post(env, H.contactBody({ subject: "   " })).error, "invalid_subject"); // whitespace-only
-  assert.equal(H.post(env, H.contactBody({ message: "" })).error, "invalid_message");
+  assert.equal(H.post(env, H.contactBody({ email: "" })).error, "CONTACT_INVALID_EMAIL");
+  assert.equal(H.post(env, H.contactBody({ subject: "" })).error, "CONTACT_INVALID_SUBJECT");
+  assert.equal(H.post(env, H.contactBody({ subject: "   " })).error, "CONTACT_INVALID_SUBJECT"); // whitespace-only
+  assert.equal(H.post(env, H.contactBody({ message: "" })).error, "CONTACT_INVALID_MESSAGE");
 });
 
 test("category validation: only the fixed enum is accepted, arbitrary strings rejected", () => {
   const env = freshWithMail();
-  assert.equal(H.post(env, H.contactBody({ category: "not-a-real-category" })).error, "invalid_category");
-  assert.equal(H.post(env, H.contactBody({ category: "" })).error, "invalid_category");
+  assert.equal(H.post(env, H.contactBody({ category: "not-a-real-category" })).error, "CONTACT_INVALID_CATEGORY");
+  assert.equal(H.post(env, H.contactBody({ category: "" })).error, "CONTACT_INVALID_CATEGORY");
   for (const c of ["general", "consulting", "billing", "complaint", "technical", "website", "other"]) {
     assert.equal(H.post(env, H.contactBody({ category: c })).ok, true);
   }
@@ -76,33 +76,60 @@ test("category validation: only the fixed enum is accepted, arbitrary strings re
 
 test("character limits: subject > 160 and message > 5000 are rejected", () => {
   const env = freshWithMail();
-  assert.equal(H.post(env, H.contactBody({ subject: "s".repeat(161) })).error, "invalid_subject");
+  assert.equal(H.post(env, H.contactBody({ subject: "s".repeat(161) })).error, "CONTACT_INVALID_SUBJECT");
   assert.equal(H.post(env, H.contactBody({ subject: "s".repeat(160) })).ok, true); // exactly at the limit is fine
-  assert.equal(H.post(env, H.contactBody({ message: "m".repeat(5001) })).error, "invalid_message");
+  assert.equal(H.post(env, H.contactBody({ message: "m".repeat(5001) })).error, "CONTACT_INVALID_MESSAGE");
   assert.equal(H.post(env, H.contactBody({ message: "m".repeat(5000) })).ok, true);
 });
 
-test("secret check: wrong or missing secret is rejected before any validation runs", () => {
+test("secret check: wrong or missing secret is rejected before any validation runs (shared with lead/mentor/crm — unchanged)", () => {
   const env = freshWithMail();
   assert.equal(H.post(env, H.contactBody({ secret: H.WRONG })).error, "unauthorized");
   assert.equal(H.post(env, Object.assign({}, H.contactBody(), { secret: undefined })).error, "unauthorized");
 });
 
-test("not_configured: CONTACT_EMAIL missing from Script Properties never sends and never leaks the missing value", () => {
+test("CONTACT_NOT_CONFIGURED: CONTACT_EMAIL missing from Script Properties never sends and never leaks the missing value", () => {
   const env = H.fresh(); // no contactEmail option -> CONTACT_EMAIL Script Property absent
   const before = env.mails.length;
   const r = H.post(env, H.contactBody());
   assert.equal(r.ok, false);
-  assert.equal(r.error, "not_configured");
+  assert.equal(r.error, "CONTACT_NOT_CONFIGURED");
   assert.equal(env.mails.length, before);
 });
 
-test("mail_send_failed: a MailApp exception (e.g. quota) is caught and reported without throwing", () => {
+test("CONTACT_MAIL_SEND_FAILED: a MailApp exception (e.g. missing authorization or quota) is caught, never thrown, and the code carries a PII-free diagnostic hint", () => {
+  const env = freshWithMail();
+  env.state.failMail = true; // harness throws "Service invoked too many times for one day: sendEmail"
+  const r = H.post(env, H.contactBody({ email: "should.never.appear@example.com", message: "should never appear either" }));
+  assert.equal(r.ok, false);
+  assert.match(r.error, /^CONTACT_MAIL_SEND_FAILED:/);
+  assert.match(r.error, /Service invoked too many times/); // the exception's own system message rides along...
+  assert.ok(!r.error.includes("should.never.appear@example.com")); // ...but never the visitor's own data
+  assert.ok(!r.error.includes("should never appear either"));
+});
+
+test("testContactMailAuthorization(): a manual, isolated diagnostic — never reachable via doPost, never touches CRM/RAW", () => {
+  const env = freshWithMail();
+  const crmBefore = H.dataRows(env.sheets.LEADS_CRM).length;
+  // No body.type value routes a public POST to this function — doPost only
+  // ever dispatches to handleContactRequest() for the literal "contact"
+  // type; anything else falls through to the ordinary public-form checks.
+  const viaPost = H.post(env, Object.assign({}, H.contactBody(), { type: "testContactMailAuthorization" }));
+  assert.equal(viaPost.error, "missing_submission_id");
+  assert.equal(env.mails.length, 0);
+  // Only callable directly (as a developer would from the Apps Script editor's Run button):
+  H.run(env, "testContactMailAuthorization()");
+  assert.equal(H.dataRows(env.sheets.LEADS_CRM).length, crmBefore);
+  assert.equal(env.mails.length, 1); // sent its own real test e-mail, independent of the contact form
+  assert.equal(env.mails[0].to, "destek@example.com");
+});
+
+test("testContactMailAuthorization(): a MailApp failure (e.g. authorization pending) is logged, never thrown", () => {
   const env = freshWithMail();
   env.state.failMail = true;
-  const r = H.post(env, H.contactBody());
-  assert.equal(r.ok, false);
-  assert.equal(r.error, "mail_send_failed");
+  H.run(env, "testContactMailAuthorization()"); // must not throw even though sendEmail() does
+  assert.equal(env.mails.length, 0);
+  assert.ok(env.logs.some((l) => l.includes("FAILED")));
 });
 
 test("isolation: a contact submission never touches LEADS_CRM or LEADS_RAW", () => {
