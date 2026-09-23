@@ -605,9 +605,9 @@ function testContactMailAuthorization() {
     Logger.log("[RTG contact test] MailApp.sendEmail() FAILED: " + (err && err.name) + ": " + (err && err.message));
     Logger.log(
       "[RTG contact test] If the message above says something like \"you do not have permission ... Required permissions: https://www.googleapis.com/auth/script.send_mail\", " +
-      "this project's Apps Script manifest (appsscript.json) most likely declares an EXPLICIT oauthScopes list that is missing that scope — see " +
-      "integrations/google-apps-script/appsscript.reference.json in the repo for the scope to add (keep every scope already in your list; only add the missing one), " +
-      "then re-run this function — Apps Script will now recognize the scope as required and show the one-time consent dialog."
+      "add an explicit \"oauthScopes\" array to this project's appsscript.json (Project Settings > \"Show 'appsscript.json' manifest file in editor\") — see " +
+      "integrations/google-apps-script/appsscript.reference.json in the repo for the exact two scopes this project needs (spreadsheets + script.send_mail; " +
+      "do not change the existing webapp/timeZone/runtimeVersion values), save, deploy a new version, then re-run this function — the one-time consent dialog should now appear."
     );
   }
 }

@@ -167,3 +167,26 @@ test("public form (lead) and CRM routing are unaffected by the contact branch", 
   assert.equal(listResult.ok, true);
   assert.equal(listResult.total, 1);
 });
+
+test("testContactMailAuthorization(): never logs the real CONTACT_EMAIL value, only whether it is set", () => {
+  const env = freshWithMail({ contactEmail: "genuinely-secret-inbox@example.com" });
+  H.run(env, "testContactMailAuthorization()");
+  const joined = env.logs.join("\n");
+  assert.ok(!joined.includes("genuinely-secret-inbox@example.com"));
+  assert.ok(joined.includes("CONTACT_EMAIL is set."));
+});
+
+test("appsscript.reference.json declares exactly the two scopes Code.gs's own service calls require — nothing missing, nothing extra", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "integrations", "google-apps-script", "appsscript.reference.json"), "utf8"));
+  const scopes = manifest.oauthScopes;
+  assert.ok(Array.isArray(scopes));
+  assert.deepEqual(
+    [...scopes].sort(),
+    ["https://www.googleapis.com/auth/script.send_mail", "https://www.googleapis.com/auth/spreadsheets"].sort(),
+  );
+  // The webapp block must stay byte-for-byte what production already has —
+  // this reference file must never suggest changing execute-as/access.
+  assert.deepEqual(manifest.webapp, { executeAs: "USER_DEPLOYING", access: "ANYONE_ANONYMOUS" });
+});
