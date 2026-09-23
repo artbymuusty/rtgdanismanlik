@@ -3,7 +3,7 @@ import type { StatusCounts } from "@/lib/crm/query";
 
 type QuickQuery = Pick<CrmQuery, "search" | "filters" | "dateFilter">;
 
-function Stat({
+export function Stat({
   label,
   value,
   tone,

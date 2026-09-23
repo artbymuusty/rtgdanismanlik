@@ -157,15 +157,21 @@ export function DataTable({
                 }
               }}
               className={cn(
-                "group cursor-pointer hover:bg-paper-raised focus-visible:bg-paper-raised focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
-                selected.has(lead.ID) && "bg-accent/5",
+                "group cursor-pointer transition-colors hover:bg-paper-raised focus-visible:bg-paper-raised focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
+                selected.has(lead.ID) && "bg-accent/[0.06]",
               )}
             >
-              <td className="sticky left-0 z-10 w-10 bg-paper px-2 py-1.5 group-hover:bg-paper-raised" onClick={(e) => e.stopPropagation()}>
+              <td
+                className={cn(
+                  "sticky left-0 z-10 w-10 border-l-2 bg-paper px-2 py-2 transition-colors group-hover:bg-paper-raised",
+                  selected.has(lead.ID) ? "border-l-accent bg-accent/[0.06] group-hover:bg-accent/[0.08]" : "border-l-transparent",
+                )}
+                onClick={(e) => e.stopPropagation()}
+              >
                 <input type="checkbox" aria-label={`${lead.Ad} ${lead.Soyad} seç`} checked={selected.has(lead.ID)} onChange={() => onToggleSelect(lead.ID)} className="h-4 w-4 accent-accent" />
               </td>
               {visibleColumns.map((column) => (
-                <td key={column} className={cn("px-0 py-0.5", WIDTH_CLASS[FIELD_BY_COLUMN[column].width])} onClick={(e) => FIELD_BY_COLUMN[column].inlineEditable && e.stopPropagation()}>
+                <td key={column} className={cn("px-0 py-1", WIDTH_CLASS[FIELD_BY_COLUMN[column].width])} onClick={(e) => FIELD_BY_COLUMN[column].inlineEditable && e.stopPropagation()}>
                   {renderCell(lead, column)}
                 </td>
               ))}

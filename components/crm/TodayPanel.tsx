@@ -2,14 +2,17 @@
 
 import { isoToday } from "@/lib/crm/query";
 import { STATUS_NOT_MET, type CrmQuery } from "@/lib/crm/types";
+import { Stat } from "./KpiStrip";
 
 type QuickQuery = Pick<CrmQuery, "search" | "filters" | "dateFilter">;
 
 /**
  * A small "Bugün" (Today) working view — three reliably computable counts
  * (never a prediction or an AI guess), each one click away from the exact
- * filtered table it describes. Deliberately compact: a slim strip, not
- * another dashboard card.
+ * filtered table it describes. Reuses KpiStrip's own <Stat> primitive (same
+ * number-over-caption rhythm, same divider/spacing) so this strip reads as
+ * a continuation of the KPI strip above it — a "today" slice of the same
+ * metrics language — rather than a visually unrelated row of chips.
  */
 export function TodayPanel({
   appliedToday,
@@ -42,19 +45,13 @@ export function TodayPanel({
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-line bg-paper-raised/50 px-4 py-2">
-      <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-gold">Bugün</span>
-      {items.map((item) => (
-        <button
-          key={item.label}
-          type="button"
-          onClick={() => onApply(item.query)}
-          className="flex items-center gap-1.5 rounded-full border border-line bg-paper px-2.5 py-1 text-xs text-ink transition-colors hover:border-accent"
-        >
-          <span className="font-mono font-semibold text-ink">{item.value}</span>
-          {item.label}
-        </button>
-      ))}
+    <div className="flex items-center gap-3 overflow-x-auto border-b border-line bg-paper-raised/40 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.08em] text-gold">Bugün</span>
+      <div className="flex items-center divide-x divide-line">
+        {items.map((item) => (
+          <Stat key={item.label} label={item.label} value={item.value} onClick={() => onApply(item.query)} />
+        ))}
+      </div>
     </div>
   );
 }
