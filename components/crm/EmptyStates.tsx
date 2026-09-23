@@ -2,6 +2,7 @@
 
 import { crmErrorMessage, isSessionError } from "@/lib/crm/error-messages";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/lib/cn";
 
 export function TableSkeleton({ rows = 8 }: { rows?: number }) {
@@ -16,19 +17,17 @@ export function TableSkeleton({ rows = 8 }: { rows?: number }) {
 
 export function EmptyResult({ hasFilters, onClearFilters }: { hasFilters: boolean; onClearFilters: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 px-6 py-20 text-center">
-      <p className="font-display text-lg font-semibold text-ink">{hasFilters ? "Filtrelere uyan sonuç yok." : "Henüz hiç lead yok."}</p>
-      <p className="max-w-sm text-sm text-muted">
-        {hasFilters
-          ? "Arama ve filtre kombinasyonunu gevşetmeyi dene."
-          : "Website'den yeni bir başvuru geldiğinde burada görünecek."}
-      </p>
-      {hasFilters ? (
-        <Button variant="secondary" onClick={onClearFilters} className="!px-4 !py-2 text-sm">
-          Filtreleri temizle
-        </Button>
-      ) : null}
-    </div>
+    <EmptyState
+      title={hasFilters ? "Bu filtrelerle eşleşen lead yok." : "Henüz hiç lead yok."}
+      description={hasFilters ? "Arama ve filtre kombinasyonunu gevşetmeyi dene." : "Website'den yeni bir başvuru geldiğinde burada görünecek."}
+      action={
+        hasFilters ? (
+          <Button variant="secondary" onClick={onClearFilters} className="!px-4 !py-2 text-sm">
+            Filtreleri temizle
+          </Button>
+        ) : undefined
+      }
+    />
   );
 }
 

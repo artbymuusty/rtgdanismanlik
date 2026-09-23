@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   crmBulkUpdateAction,
   crmExportCsvAction,
@@ -12,6 +12,7 @@ import {
 } from "@/app/crm/actions";
 import { activeFilterCount } from "./FilterPanel";
 import { crmErrorMessage, isSessionError } from "@/lib/crm/error-messages";
+import { queryToSearchParams, searchParamsToQuery } from "@/lib/crm/url-state";
 import type { CrmColumn, CrmLead, CrmQuery, DateRangeFilter, SortDirection } from "@/lib/crm/types";
 import type { StatusCounts, TodayCounts } from "@/lib/crm/query";
 import { STATUS_NOT_MET } from "@/lib/crm/types";
@@ -31,6 +32,7 @@ import { NewLeadDialog } from "./NewLeadDialog";
 import { CommandPalette } from "./CommandPalette";
 import { EmptyResult, ErrorBanner, TableSkeleton } from "./EmptyStates";
 import type { CellSaveResult } from "./EditableCells";
+import { Toast, useToast } from "@/components/ui/Toast";
 
 function downloadCsv(csv: string) {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -50,6 +52,8 @@ function isFail(r: LoadResult): r is { ok: false; error: string } {
 
 export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: CrmQuery; initialResult: LoadResult }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [actor] = useActorName();
   const [visibleColumns, setVisibleColumns] = useVisibleColumns();
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -69,6 +73,40 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
     [debouncedSearch, filters, dateFilter, sortBy, sortDir, page, pageSize],
   );
   const filterKey = JSON.stringify({ debouncedSearch, filters, dateFilter, sortBy, sortDir });
+
+  // URL <-> state sync. `lastUrlRef` holds whichever search string this
+  // component itself last wrote, so the two effects below never fight each
+  // other: writing `query` to the URL skips a no-op push, and reading the
+  // URL back only reacts to a change THIS component didn't just make
+  // (a real browser back/forward, a pasted link, or a bookmark).
+  const lastUrlRef = useRef(searchParams.toString());
+  // State, not a ref: the render-body guard below (the existing
+  // "adjust state during render" pattern for lastFilterKey) needs to READ
+  // this during render, which the project's React Compiler lint rules
+  // forbid for a ref's .current.
+  const [isSyncingFromUrl, setIsSyncingFromUrl] = useState(false);
+  useEffect(() => {
+    const next = queryToSearchParams(query).toString();
+    if (next === lastUrlRef.current) return;
+    lastUrlRef.current = next;
+    router.push(next ? `${pathname}?${next}` : pathname, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- router/pathname are stable; only `query` should re-run this
+  }, [query]);
+
+  useEffect(() => {
+    const current = searchParams.toString();
+    if (current === lastUrlRef.current) return; // our own push, already applied to state
+    lastUrlRef.current = current;
+    setIsSyncingFromUrl(true);
+    const next = searchParamsToQuery(searchParams);
+    setSearch(next.search);
+    setFilters(next.filters);
+    setDateFilter(next.dateFilter);
+    setSortBy(next.sortBy);
+    setSortDir(next.sortDir);
+    setPage(next.page);
+    setPageSize(next.pageSize);
+  }, [searchParams]);
 
   const [rows, setRows] = useState<CrmLead[]>(isFail(initialResult) ? [] : initialResult.rows);
   const [meta, setMeta] = useState(
@@ -100,15 +138,8 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
   const [openLead, setOpenLead] = useState<CrmLead | null>(null);
   const [showNewLead, setShowNewLead] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const { message: toast, show: flashToast } = useToast();
   const skipInitialFetch = useRef(true);
-
-  const flashToast = useCallback((message: string) => setToast(message), []);
-  useEffect(() => {
-    if (!toast) return;
-    const id = setTimeout(() => setToast(null), 4000);
-    return () => clearTimeout(id);
-  }, [toast]);
 
   const load = useCallback(
     async (q: CrmQuery, force: boolean, silent = false) => {
@@ -140,12 +171,24 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
   // combination changes — adjusted during render (React's documented
   // pattern for this), not in an effect, so it lands in the same commit as
   // the change that caused it rather than costing an extra render+effect cycle.
+  // Skipped when the change came from the URL-sync effect (a browser
+  // back/forward, a pasted link) — that snapshot already carries its own
+  // correct page number, which a filter-driven reset would otherwise
+  // immediately clobber back to 1.
   const [lastFilterKey, setLastFilterKey] = useState(filterKey);
   if (filterKey !== lastFilterKey) {
     setLastFilterKey(filterKey);
-    setPage(1);
-    setSelected(new Set());
+    if (!isSyncingFromUrl) {
+      setPage(1);
+      setSelected(new Set());
+    }
   }
+  // Always consumed the render right after the URL-sync effect sets it,
+  // regardless of whether filterKey itself changed (a back/forward that
+  // only changed the page number, for instance, never touches filterKey
+  // at all) — otherwise a stale `true` would suppress a later, genuinely
+  // user-driven filter change's page reset.
+  if (isSyncingFromUrl) setIsSyncingFromUrl(false);
 
   useEffect(() => {
     if (skipInitialFetch.current) {
@@ -426,16 +469,7 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
         onFocusSearch={() => searchRef.current?.focus()}
       />
 
-      {toast ? (
-        <div className="pointer-events-none fixed bottom-4 left-1/2 z-50 -translate-x-1/2">
-          <div
-            role="status"
-            className="pointer-events-auto rounded-[3px] border border-line bg-ink px-4 py-2.5 text-sm text-paper shadow-lg motion-safe:animate-[crm-slide-up_180ms_ease-out]"
-          >
-            {toast}
-          </div>
-        </div>
-      ) : null}
+      <Toast message={toast} />
     </div>
   );
 }

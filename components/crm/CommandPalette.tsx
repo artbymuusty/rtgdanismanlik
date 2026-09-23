@@ -115,7 +115,6 @@ export function CommandPalette({
         className="w-full max-w-lg overflow-hidden rounded-[3px] border border-line bg-paper shadow-2xl outline-none motion-safe:animate-[crm-scale-in_120ms_ease-out]"
       >
         <input
-          autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Bir komut ara… (görünüm, yenile, yeni lead)"

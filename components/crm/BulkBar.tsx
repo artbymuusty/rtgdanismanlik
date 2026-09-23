@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CRM_STATUSES } from "@/lib/crm/types";
 import { crmErrorMessage } from "@/lib/crm/error-messages";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 type Action = "sorumlu" | "durum" | "mentor" | null;
 
@@ -103,15 +104,13 @@ export function BulkBar({
                 Uygula
               </button>
             ) : (
-              <span className="flex items-center gap-1.5 text-xs">
-                {count} kayıt güncellenecek, emin misin?
-                <button type="button" disabled={pending} onClick={apply} className="rounded-[3px] bg-danger px-2 py-1 font-medium text-paper">
-                  {pending ? "Uygulanıyor..." : "Evet, uygula"}
-                </button>
-                <button type="button" onClick={() => setConfirming(false)} className="text-paper/70 hover:text-paper">
-                  Vazgeç
-                </button>
-              </span>
+              <ConfirmDialog
+                question={`${count} kayıt güncellenecek, emin misin?`}
+                confirmLabel="Evet, uygula"
+                pending={pending}
+                onConfirm={apply}
+                onCancel={() => setConfirming(false)}
+              />
             )}
           </div>
         ) : null}

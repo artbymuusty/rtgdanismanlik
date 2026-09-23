@@ -73,7 +73,7 @@ export function NewLeadDialog({ team, onCreated, onClose }: { team: string[]; on
         <p className="mt-1 text-sm text-muted">Website başvurusu dışında, elle bir kayıt oluştur.</p>
         <form onSubmit={submit} className="mt-4 flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Ad" value={form.Ad} onChange={(v) => set("Ad", v)} required autoFocus />
+            <Field label="Ad" value={form.Ad} onChange={(v) => set("Ad", v)} required />
             <Field label="Soyad" value={form.Soyad} onChange={(v) => set("Soyad", v)} required />
           </div>
           <Field label="E-posta" type="email" value={form.Email} onChange={(v) => set("Email", v)} />
@@ -123,14 +123,12 @@ function Field({
   onChange,
   type = "text",
   required,
-  autoFocus,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
   required?: boolean;
-  autoFocus?: boolean;
 }) {
   return (
     <div>
@@ -139,7 +137,6 @@ function Field({
         type={type}
         value={value}
         required={required}
-        autoFocus={autoFocus}
         onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-[3px] border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus-visible:border-accent"
       />
