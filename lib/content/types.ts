@@ -246,6 +246,23 @@ export interface Dictionary {
       description: string;
       captions: [string, string, string];
     };
+    universityExplorer: {
+      eyebrow: string;
+      title: string;
+      description: string;
+      rankingSourceLabel: string;
+      rankLabel: string;
+      prevAriaLabel: string;
+      nextAriaLabel: string;
+      exploreCta: string;
+      indexButtonLabel: string;
+      indexTitle: string;
+      indexSearchPlaceholder: string;
+      indexSearchAriaLabel: string;
+      indexEmptyState: string;
+      indexClose: string;
+      photoPending: string;
+    };
     humanConnection: {
       eyebrow: string;
       metadata: string;

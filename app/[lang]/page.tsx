@@ -3,7 +3,7 @@ import { StageSelector } from "@/components/sections/StageSelector";
 import { Journey } from "@/components/sections/Journey";
 import { ServicesOverview } from "@/components/sections/ServicesOverview";
 import { HowWeWork } from "@/components/sections/HowWeWork";
-import { VisualStorytelling } from "@/components/sections/VisualStorytelling";
+import { UniversityExplorerSection } from "@/components/university-explorer/UniversityExplorerSection";
 import { StudentStories } from "@/components/sections/StudentStories";
 import { MentorshipTeaser } from "@/components/sections/MentorshipTeaser";
 import { HumanConnection } from "@/components/sections/HumanConnection";
@@ -24,7 +24,7 @@ export default async function Home({ params }: { params: LangParams }) {
       <Journey lang={lang} />
       <ServicesOverview lang={lang} />
       <HowWeWork lang={lang} />
-      <VisualStorytelling lang={lang} />
+      <UniversityExplorerSection lang={lang} />
       <StudentStories lang={lang} />
       <MentorshipTeaser lang={lang} />
       <HumanConnection lang={lang} />

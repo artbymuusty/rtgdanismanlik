@@ -72,6 +72,25 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* University Explorer (public homepage) — same motion-safe: gating and
+   reduced-motion safety net as the CRM keyframes above. */
+@keyframes uni-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes uni-scale-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes uni-slide-from-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes uni-slide-from-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
