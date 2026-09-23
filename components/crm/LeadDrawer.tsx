@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { crmGetAction } from "@/app/crm/actions";
 import { buildMailto, buildTel, buildWhatsAppLink, safeDriveLink } from "@/lib/crm/contact-links";
 import { crmErrorMessage } from "@/lib/crm/error-messages";
-import { ENUM_LABELS, FIELDS, GROUP_LABELS, type FieldGroup, type FieldMeta } from "@/lib/crm/fields";
+import { ENUM_LABELS, FIELDS, GROUP_LABELS, NEXT_STEP_HINTS, type FieldGroup, type FieldMeta } from "@/lib/crm/fields";
 import { formatCrmDate } from "@/lib/crm/format";
-import type { ActivityEntry, CrmColumn, CrmLead, SnapshotInfo } from "@/lib/crm/types";
+import { CRM_STATUSES, type ActivityEntry, type CrmColumn, type CrmLead, type CrmStatus, type SnapshotInfo } from "@/lib/crm/types";
 import { Button } from "@/components/ui/Button";
 import type { CellSave } from "./EditableCells";
 import { useFocusTrap } from "./hooks";
@@ -136,10 +136,20 @@ function DrawerField({ meta, value, onSave, statuses, team }: { meta: FieldMeta;
   );
 }
 
-function QuickAction({ href, children }: { href: string | null; children: React.ReactNode }) {
+function QuickAction({ href, primary, children }: { href: string | null; primary?: boolean; children: React.ReactNode }) {
   if (!href) return null;
   return (
-    <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" className="rounded-[3px] border border-line px-3 py-2 text-sm text-ink transition-colors hover:border-accent hover:text-accent">
+    <a
+      href={href}
+      target={href.startsWith("http") ? "_blank" : undefined}
+      rel="noopener noreferrer"
+      className={
+        "rounded-[3px] border px-3.5 py-2.5 text-sm font-medium transition-colors " +
+        (primary
+          ? "border-accent bg-accent text-accent-ink hover:bg-ink hover:border-ink"
+          : "border-line bg-paper-raised text-ink hover:border-accent hover:text-accent")
+      }
+    >
       {children}
     </a>
   );
@@ -203,6 +213,7 @@ export function LeadDrawer({
 
   const mentorRef = lead["Mentor ID"].trim();
   const dialogRef = useFocusTrap<HTMLDivElement>(true);
+  const nextStepHint = (CRM_STATUSES as readonly string[]).includes(lead.Durum) ? NEXT_STEP_HINTS[lead.Durum as CrmStatus] : null;
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end bg-ink/30 motion-safe:animate-[crm-fade-in_150ms_ease-out]" onClick={onClose}>
@@ -219,7 +230,15 @@ export function LeadDrawer({
             <p className="truncate font-display text-xl font-semibold text-ink">
               {lead.Ad} {lead.Soyad}
             </p>
-            <StatusBadge status={lead.Durum} />
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <StatusBadge status={lead.Durum} />
+              {nextStepHint ? (
+                <span className="inline-flex items-center gap-1 text-xs text-muted">
+                  <span aria-hidden="true">→</span>
+                  {nextStepHint}
+                </span>
+              ) : null}
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {position && onNavigate ? (
@@ -255,8 +274,12 @@ export function LeadDrawer({
 
         <div className="flex flex-wrap gap-2 border-b border-line px-5 py-3">
           <QuickAction href={buildMailto(lead.Email)}>E-posta gönder</QuickAction>
-          <QuickAction href={buildTel(lead.Telefon)}>Ara</QuickAction>
-          <QuickAction href={buildWhatsAppLink(lead.Telefon)}>WhatsApp&apos;tan yaz</QuickAction>
+          <QuickAction href={buildTel(lead.Telefon)} primary={lead["Tercih Edilen İletişim"] === "phone"}>
+            Ara
+          </QuickAction>
+          <QuickAction href={buildWhatsAppLink(lead.Telefon)} primary={lead["Tercih Edilen İletişim"] === "whatsapp"}>
+            WhatsApp&apos;tan yaz
+          </QuickAction>
           <QuickAction href={safeDriveLink(lead["Drive Folder"])}>Drive&apos;ı aç</QuickAction>
           {mentorRef ? (
             <span title="Mentor profili altyapısı hazır; henüz bir mentor dizini bağlanmadı." className="cursor-not-allowed rounded-[3px] border border-line px-3 py-2 text-sm text-muted opacity-60">

@@ -1,6 +1,6 @@
 import { tr } from "@/lib/content/tr";
 import type { AssessmentStep } from "@/lib/content/types";
-import type { CrmColumn } from "./types";
+import type { CrmColumn, CrmStatus } from "./types";
 
 /**
  * Human-readable labels for the raw values LEADS_CRM stores in a few
@@ -40,6 +40,26 @@ export function enumLabel(column: CrmColumn, value: string): string {
   if (!value) return "";
   return ENUM_LABELS[column]?.[value] ?? value;
 }
+
+/**
+ * A fixed, deliberately dumb Durum -> "what to do next" lookup — never
+ * generated, predicted or inferred from anything about the specific lead.
+ * It only ever reflects which of the 6 fixed lifecycle stages a lead is
+ * currently in (see STATUS_* in lib/crm/types.ts), the same rule every
+ * time. This is display-only guidance for the drawer header, purely so a
+ * staff member scanning many leads doesn't have to re-derive "what does
+ * this status mean I should do" each time — never a hint that could be
+ * wrong about THIS lead's actual next step, since it doesn't look at
+ * anything about the lead beyond its Durum.
+ */
+export const NEXT_STEP_HINTS: Record<CrmStatus, string | null> = {
+  "İlk görüşme yapılmadı": "İlk görüşmeyi planla",
+  "İlk görüşme yapıldı": "Durumu güncelle: İletişim Kuruldu / Süreçte",
+  "İletişim Kuruldu": "Süreci ilerlet veya sonucu işaretle",
+  "Süreçte": "Süreci takip et",
+  "Olumlu Sonuçlandı": "Mentor ata, dosyayı tamamla",
+  "Olumsuz Sonuçlandı": null,
+};
 
 export type ColumnWidth = "xs" | "sm" | "md" | "lg" | "xl";
 export type FieldGroup = "personal" | "application" | "notes" | "management" | "source";
