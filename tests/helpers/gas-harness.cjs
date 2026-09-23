@@ -105,7 +105,15 @@ function makeEnv({ secretProp = SECRET, now = new Date("2026-09-21T10:30:00Z"), 
         mails.push(Object.assign({}, opts));
       },
       getRemainingDailyQuota: () => {
-        if (state.failMail) throw new Error("Service invoked too many times for one day: getRemainingDailyQuota");
+        // failQuotaOnly simulates the exact production symptom reported:
+        // the quota check itself is permission-gated and throws even
+        // though a subsequent sendEmail() call might still be attempted
+        // and succeed (or itself throw) independently.
+        if (state.failMail || state.failQuotaOnly) {
+          throw new Error(
+            "You do not have permission to call MailApp.getRemainingDailyQuota. Required permissions: https://www.googleapis.com/auth/script.send_mail",
+          );
+        }
         return 100;
       },
     },

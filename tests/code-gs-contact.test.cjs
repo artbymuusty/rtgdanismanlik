@@ -132,6 +132,15 @@ test("testContactMailAuthorization(): a MailApp failure (e.g. authorization pend
   assert.ok(env.logs.some((l) => l.includes("FAILED")));
 });
 
+test("testContactMailAuthorization(): does NOT early-return when only the quota check fails — still attempts sendEmail()", () => {
+  const env = freshWithMail();
+  env.state.failQuotaOnly = true; // reproduces the exact reported symptom: quota check throws, sendEmail is untouched
+  H.run(env, "testContactMailAuthorization()");
+  assert.equal(env.mails.length, 1); // sendEmail() was still attempted and succeeded
+  assert.ok(env.logs.some((l) => l.includes("getRemainingDailyQuota() FAILED")));
+  assert.ok(env.logs.some((l) => l.includes("MailApp.sendEmail() succeeded")));
+});
+
 test("isolation: a contact submission never touches LEADS_CRM or LEADS_RAW", () => {
   const env = freshWithMail();
   const crmBefore = H.dataRows(env.sheets.LEADS_CRM).length;

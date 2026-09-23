@@ -1,0 +1,14 @@
+{
+  "_comment_do_not_paste_this_key": "This file is a REFERENCE ONLY — it documents the OAuth scopes Code.gs's own code requires, based on which Apps Script services it calls (SpreadsheetApp -> spreadsheets, MailApp -> script.send_mail). It is NOT a copy of the live project's real appsscript.json, which this repo has never had a copy of. DO NOT paste this whole file over the live manifest: your real oauthScopes array may already contain other scopes this static analysis can't see (e.g. from services added directly in the editor). Compare the 'oauthScopes' array below against Project Settings -> 'Show appsscript.json manifest file in editor' -> appsscript.json in the live project, and ONLY ADD whatever scope is missing (most likely https://www.googleapis.com/auth/script.send_mail, per the exact 'Required permissions' the authorization error already names) — never remove a scope you find there that isn't listed here. Also remove this _comment_do_not_paste_this_key entry before saving anything derived from this file into the real manifest; appsscript.json does not support comments and an unrecognized key can be rejected.",
+  "timeZone": "Europe/Istanbul",
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/script.send_mail"
+  ],
+  "webapp": {
+    "executeAs": "USER_DEPLOYING",
+    "access": "ANYONE_ANONYMOUS"
+  }
+}

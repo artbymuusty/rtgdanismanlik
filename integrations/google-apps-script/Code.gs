@@ -580,25 +580,35 @@ function testContactMailAuthorization() {
   Logger.log("[RTG contact test] CONTACT_EMAIL is " + (recipient ? "set." : "NOT SET — add it in Project Settings > Script Properties first, then re-run this."));
   if (!recipient) return;
 
+  // getRemainingDailyQuota() and sendEmail() are BOTH gated by the exact
+  // same OAuth scope (script.send_mail) — a failure on the quota check is
+  // not a reason to stop, it's the same missing-authorization symptom the
+  // send attempt below will hit too. Both are tried and both are logged,
+  // so a genuine "authorization required" exception (see its own message
+  // for the exact scope URL Google is asking for) is never swallowed
+  // silently by an early return.
   try {
     var quota = MailApp.getRemainingDailyQuota();
     Logger.log("[RTG contact test] MailApp.getRemainingDailyQuota() ok — remaining quota: " + quota);
   } catch (err) {
     Logger.log("[RTG contact test] getRemainingDailyQuota() FAILED: " + (err && err.name) + ": " + (err && err.message));
-    Logger.log("[RTG contact test] This is very likely an authorization prompt waiting for your approval — check for a permissions dialog, approve it, then run this function again.");
-    return;
   }
 
   try {
     MailApp.sendEmail({
       to: recipient,
-      subject: "[RTG İletişim] Test — Apps Script yetkilendirme kontrolü",
-      body: "Bu, testContactMailAuthorization() tarafından gönderilen manuel bir test e-postasıdır.\n\nBu e-postayı görüyorsan MailApp bu proje için doğru şekilde yetkilendirilmiş ve CONTACT_EMAIL'e teslimat çalışıyor demektir — production /iletisim formu da artık çalışmalı."
+      subject: "[RTG Test] Contact Composer MailApp Authorization",
+      body: "Bu RTG Contact Composer MailApp authorization testidir.\n\nBu e-postayı görüyorsan MailApp bu proje için doğru şekilde yetkilendirilmiş ve CONTACT_EMAIL'e teslimat çalışıyor demektir — production /iletisim formu da artık çalışmalı."
     });
     Logger.log("[RTG contact test] MailApp.sendEmail() succeeded — check the CONTACT_EMAIL inbox (and spam folder) now.");
   } catch (err) {
     Logger.log("[RTG contact test] MailApp.sendEmail() FAILED: " + (err && err.name) + ": " + (err && err.message));
-    Logger.log("[RTG contact test] If this mentions authorization/permission, approve the consent dialog if one appeared, then re-run this function.");
+    Logger.log(
+      "[RTG contact test] If the message above says something like \"you do not have permission ... Required permissions: https://www.googleapis.com/auth/script.send_mail\", " +
+      "this project's Apps Script manifest (appsscript.json) most likely declares an EXPLICIT oauthScopes list that is missing that scope — see " +
+      "integrations/google-apps-script/appsscript.reference.json in the repo for the scope to add (keep every scope already in your list; only add the missing one), " +
+      "then re-run this function — Apps Script will now recognize the scope as required and show the one-time consent dialog."
+    );
   }
 }
 
