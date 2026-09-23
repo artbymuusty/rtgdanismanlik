@@ -51,6 +51,27 @@ body {
   outline-offset: 2px;
 }
 
+/* CRM-only subtle motion (drawer, command palette, toast, popovers).
+   motion-safe: already gates every use of these, and the reduced-motion
+   media query above collapses all animation-duration to 0.01ms as a
+   second, unconditional safety net. */
+@keyframes crm-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes crm-scale-in {
+  from { opacity: 0; transform: translateY(2px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes crm-slide-in-right {
+  from { transform: translateX(16px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes crm-slide-up {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

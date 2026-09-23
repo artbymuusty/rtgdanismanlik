@@ -61,8 +61,14 @@ export function NewLeadDialog({ team, onCreated, onClose }: { team: string[]; on
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4">
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Manuel lead ekle" className="w-full max-w-md rounded-[3px] border border-line bg-paper p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4 motion-safe:animate-[crm-fade-in_120ms_ease-out]">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Manuel lead ekle"
+        className="w-full max-w-md rounded-[3px] border border-line bg-paper p-6 shadow-xl motion-safe:animate-[crm-scale-in_150ms_ease-out]"
+      >
         <h2 className="font-display text-xl font-semibold text-ink">Manuel lead ekle</h2>
         <p className="mt-1 text-sm text-muted">Website başvurusu dışında, elle bir kayıt oluştur.</p>
         <form onSubmit={submit} className="mt-4 flex flex-col gap-3">

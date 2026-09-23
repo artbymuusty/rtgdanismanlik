@@ -4,6 +4,7 @@ import { BADGE_COLUMNS, FIELD_BY_COLUMN, enumLabel, ENUM_LABELS } from "@/lib/cr
 import { formatCrmDate } from "@/lib/crm/format";
 import type { CrmColumn, CrmLead, SortDirection } from "@/lib/crm/types";
 import { InlineSelectCell, InlineTextCell, NotesCell, type CellSave } from "./EditableCells";
+import { Avatar } from "./Avatar";
 import { LevelBadge } from "./LevelBadge";
 import { StatusSelect } from "./StatusSelect";
 import { cn } from "@/lib/cn";
@@ -53,6 +54,23 @@ export function DataTable({
   function renderCell(lead: CrmLead, column: CrmColumn) {
     const save = (value: string) => onCellSave(lead, column, value);
     switch (column) {
+      case "Ad":
+        // The identity cell: avatar + Ad Soyad (primary, bold) + Email
+        // (secondary, muted) — isim/email/source/ID artık tek bir okunaklı
+        // hiyerarşi içinde. Soyad/Email remain their own real columns
+        // (sortable/filterable/searchable, toggle-able in Sütunlar) — this
+        // is purely how "Ad" itself renders when visible.
+        return (
+          <div className="flex min-w-0 items-center gap-2 px-1.5 py-1">
+            <Avatar firstName={lead.Ad} lastName={lead.Soyad} />
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-medium text-ink">
+                {lead.Ad} {lead.Soyad}
+              </p>
+              {lead.Email ? <p className="truncate text-[11px] text-muted">{lead.Email}</p> : null}
+            </div>
+          </div>
+        );
       case "Durum":
         return (
           <StatusSelect value={lead.Durum} statuses={statuses} firstMeetingDate={lead["İlk Görüşme Tarihi"]} onChange={save} compact />

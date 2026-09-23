@@ -47,7 +47,7 @@ export function SortMenu({
           style={popoverStyle}
           role="listbox"
           aria-label="Sıralama sütunu"
-          className="z-50 max-h-[70vh] w-64 max-w-[calc(100vw-24px)] overflow-y-auto rounded-[3px] border border-line bg-paper p-1.5 shadow-lg"
+          className="z-50 max-h-[70vh] w-64 max-w-[calc(100vw-24px)] overflow-y-auto rounded-[3px] border border-line bg-paper p-1.5 shadow-lg motion-safe:animate-[crm-scale-in_120ms_ease-out]"
         >
           <div className="flex gap-1 border-b border-line px-1.5 pb-1.5">
             {(["asc", "desc"] as const).map((dir) => (

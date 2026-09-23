@@ -205,14 +205,14 @@ export function LeadDrawer({
   const dialogRef = useFocusTrap<HTMLDivElement>(true);
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end bg-ink/30" onClick={onClose}>
+    <div className="fixed inset-0 z-40 flex justify-end bg-ink/30 motion-safe:animate-[crm-fade-in_150ms_ease-out]" onClick={onClose}>
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={`${lead.Ad} ${lead.Soyad} detayları`}
         onClick={(e) => e.stopPropagation()}
-        className="flex h-full w-full max-w-lg flex-col overflow-hidden border-l border-line bg-paper shadow-2xl outline-none sm:max-w-xl"
+        className="flex h-full w-full max-w-lg flex-col overflow-hidden border-l border-line bg-paper shadow-2xl outline-none motion-safe:animate-[crm-slide-in-right_180ms_ease-out] sm:max-w-xl"
       >
         <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
           <div className="min-w-0">

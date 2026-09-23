@@ -54,7 +54,7 @@ export function ColumnsMenu({ visible, onChange }: { visible: CrmColumn[]; onCha
         <div
           ref={panelRef}
           style={popoverStyle}
-          className="z-50 max-h-[70vh] w-72 max-w-[calc(100vw-24px)] overflow-y-auto rounded-[3px] border border-line bg-paper p-3 shadow-lg"
+          className="z-50 max-h-[70vh] w-72 max-w-[calc(100vw-24px)] overflow-y-auto rounded-[3px] border border-line bg-paper p-3 shadow-lg motion-safe:animate-[crm-scale-in_120ms_ease-out]"
         >
           <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">Görünür</p>
           <ul className="mt-1.5 flex flex-col gap-0.5">

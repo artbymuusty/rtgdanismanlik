@@ -51,7 +51,7 @@ export function BulkBar({
   }
 
   return (
-    <div className="sticky bottom-0 z-20 border-t border-line bg-ink px-4 py-3 text-paper shadow-[0_-2px_8px_rgba(0,0,0,0.15)]">
+    <div className="sticky bottom-0 z-20 border-t border-line bg-ink px-4 py-3 text-paper shadow-[0_-2px_8px_rgba(0,0,0,0.15)] motion-safe:animate-[crm-slide-up_150ms_ease-out]">
       <div className="flex flex-wrap items-center gap-3">
         <p className="text-sm font-medium">{count} kayıt seçildi</p>
         <div className="flex flex-wrap gap-1.5">

@@ -86,7 +86,7 @@ export function FilterPanel({
         <div
           ref={panelRef}
           style={popoverStyle}
-          className="z-50 flex max-h-[75vh] w-80 max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-[3px] border border-line bg-paper shadow-lg"
+          className="z-50 flex max-h-[75vh] w-80 max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-[3px] border border-line bg-paper shadow-lg motion-safe:animate-[crm-scale-in_120ms_ease-out]"
         >
           <div className="flex items-center justify-between border-b border-line px-3 py-2">
             <p className="text-sm font-medium text-ink">Filtreler</p>

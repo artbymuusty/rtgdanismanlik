@@ -33,17 +33,29 @@ export function Topbar({
   onRefresh,
   refreshing,
   searchRef,
+  onOpenCommand,
 }: {
   search: string;
   onSearchChange: (v: string) => void;
   onRefresh: () => void;
   refreshing: boolean;
   searchRef: React.RefObject<HTMLInputElement | null>;
+  onOpenCommand: () => void;
 }) {
   return (
     <header className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3">
       <p className="font-display text-lg font-semibold text-ink">RTG CRM</p>
+      <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">Operasyon</span>
       <SearchInput ref={searchRef} value={search} onChange={onSearchChange} />
+      <button
+        type="button"
+        onClick={onOpenCommand}
+        aria-label="Komut menüsünü aç"
+        title="Komut menüsü"
+        className="hidden h-9 items-center gap-1 rounded-[3px] border border-line px-2.5 font-mono text-[11px] text-muted transition-colors hover:border-accent hover:text-ink sm:flex"
+      >
+        ⌘K
+      </button>
       <button
         type="button"
         onClick={onRefresh}

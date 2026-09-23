@@ -28,6 +28,7 @@ import { MobileLeadList } from "./MobileLeadList";
 import { LeadDrawer } from "./LeadDrawer";
 import { BulkBar } from "./BulkBar";
 import { NewLeadDialog } from "./NewLeadDialog";
+import { CommandPalette } from "./CommandPalette";
 import { EmptyResult, ErrorBanner, TableSkeleton } from "./EmptyStates";
 import type { CellSaveResult } from "./EditableCells";
 
@@ -98,6 +99,7 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [openLead, setOpenLead] = useState<CrmLead | null>(null);
   const [showNewLead, setShowNewLead] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const skipInitialFetch = useRef(true);
 
@@ -154,9 +156,17 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, filterKey, page, pageSize, sortBy, sortDir]);
 
-  // "/" focuses search from anywhere that isn't already an editable field.
+  // "/" focuses search from anywhere that isn't already an editable field;
+  // ⌘K/Ctrl+K opens the command palette from anywhere, including while
+  // typing (it's a deliberate, modifier-gated shortcut, not an accidental
+  // one a text field would otherwise swallow).
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCommandOpen((v) => !v);
+        return;
+      }
       if (e.key !== "/") return;
       const el = document.activeElement;
       const typing = el instanceof HTMLElement && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
@@ -279,7 +289,14 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
 
   return (
     <div className="flex h-dvh flex-col">
-      <Topbar search={search} onSearchChange={setSearch} onRefresh={() => load(query, true)} refreshing={loading} searchRef={searchRef} />
+      <Topbar
+        search={search}
+        onSearchChange={setSearch}
+        onRefresh={() => load(query, true)}
+        refreshing={loading}
+        searchRef={searchRef}
+        onOpenCommand={() => setCommandOpen(true)}
+      />
       <KpiStrip counts={meta.counts} onApply={applyQuickQuery} />
       <TodayPanel
         appliedToday={meta.today.appliedToday}
@@ -400,9 +417,23 @@ export function CrmWorkspace({ initialQuery, initialResult }: { initialQuery: Cr
         />
       ) : null}
 
+      <CommandPalette
+        open={commandOpen}
+        onClose={() => setCommandOpen(false)}
+        onApplyView={applyQuickQuery}
+        onRefresh={() => load(query, true)}
+        onNewLead={() => setShowNewLead(true)}
+        onFocusSearch={() => searchRef.current?.focus()}
+      />
+
       {toast ? (
         <div className="pointer-events-none fixed bottom-4 left-1/2 z-50 -translate-x-1/2">
-          <div className="pointer-events-auto rounded-[3px] border border-line bg-ink px-4 py-2.5 text-sm text-paper shadow-lg">{toast}</div>
+          <div
+            role="status"
+            className="pointer-events-auto rounded-[3px] border border-line bg-ink px-4 py-2.5 text-sm text-paper shadow-lg motion-safe:animate-[crm-slide-up_180ms_ease-out]"
+          >
+            {toast}
+          </div>
         </div>
       ) : null}
     </div>

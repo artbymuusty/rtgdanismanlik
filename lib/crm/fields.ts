@@ -73,9 +73,14 @@ const F = (partial: Omit<FieldMeta, "editable">): FieldMeta => ({
 export const FIELDS: FieldMeta[] = [
   F({ column: "ID", width: "sm", defaultVisible: true, searchable: true, filterable: false, inlineEditable: false, group: "source" }),
   F({ column: "Başvuru Tarihi", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: false, group: "source" }),
-  F({ column: "Ad", width: "sm", defaultVisible: true, searchable: true, filterable: false, inlineEditable: false, group: "personal" }),
-  F({ column: "Soyad", width: "sm", defaultVisible: true, searchable: true, filterable: false, inlineEditable: false, group: "personal" }),
-  F({ column: "Email", width: "lg", defaultVisible: true, searchable: true, filterable: false, inlineEditable: false, group: "personal" }),
+  // "Ad" is the table's merged identity cell (avatar + Ad Soyad + Email —
+  // see DataTable's special-cased render for this column) — Soyad/Email
+  // stay real, independently sortable/filterable/searchable columns (a
+  // power user can still show them via Sütunlar), just not shown twice by
+  // default since the identity cell already surfaces both.
+  F({ column: "Ad", width: "xl", defaultVisible: true, searchable: true, filterable: false, inlineEditable: false, group: "personal" }),
+  F({ column: "Soyad", width: "sm", defaultVisible: false, searchable: true, filterable: false, inlineEditable: false, group: "personal" }),
+  F({ column: "Email", width: "lg", defaultVisible: false, searchable: true, filterable: false, inlineEditable: false, group: "personal" }),
   F({ column: "Telefon", width: "sm", defaultVisible: true, searchable: true, filterable: false, inlineEditable: false, group: "personal" }),
   F({ column: "Tercih Edilen İletişim", width: "sm", defaultVisible: false, searchable: false, filterable: true, inlineEditable: true, group: "personal" }),
   F({ column: "Aşama", width: "sm", defaultVisible: true, searchable: false, filterable: true, inlineEditable: true, group: "application" }),
