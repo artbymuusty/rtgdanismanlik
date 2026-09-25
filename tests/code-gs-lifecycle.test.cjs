@@ -205,6 +205,6 @@ test("CRM header typo with data blocks writes with a detailed log; padded header
 
 test("mentor applications are unaffected", () => {
   const e = H.fresh();
-  const r = H.post(e, { secret: H.SECRET, type: "mentor_application", submissionId: "m-1", payload: { firstName: "a", lastName: "b", phone: "1", email: "e", germanyExperience: "x", motivation: "y" } });
+  const r = H.post(e, { secret: H.SECRET, type: "mentor_application", submissionId: "m-1", payload: { firstName: "a", lastName: "b", phone: "1", email: "e@example.com", germanyExperience: "x", motivation: "y" } });
   assert.ok(r.ok && /^RTG-M-/.test(r.id));
 });

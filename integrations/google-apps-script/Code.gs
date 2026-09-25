@@ -133,6 +133,27 @@ var STATUS_NOT_MET = "İlk görüşme yapılmadı";
 var STATUS_MET = "İlk görüşme yapıldı";
 var STATUS_OUTCOMES = ["İletişim Kuruldu", "Süreçte", "Olumsuz Sonuçlandı", "Olumlu Sonuçlandı"];
 
+/**
+ * Constant-time secret comparison — V8 (Apps Script's runtime) has no
+ * built-in timingSafeEqual, so this compares every character regardless of
+ * an early mismatch, the same property the Next.js side already gets from
+ * node:crypto's timingSafeEqual (see lib/crm/session.ts's secretsMatch).
+ * Never short-circuits on length or an early differing character; the only
+ * branch is the final result. `a` (attacker/client-controlled) is never
+ * used to size anything — the loop always runs expectedLength iterations.
+ */
+function secretsMatch(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  var mismatch = a.length === b.length ? 0 : 1;
+  var len = b.length;
+  for (var i = 0; i < len; i++) {
+    var ca = i < a.length ? a.charCodeAt(i) : 0;
+    var cb = b.charCodeAt(i);
+    mismatch |= ca ^ cb;
+  }
+  return mismatch === 0;
+}
+
 function doPost(e) {
   var result;
   try {
@@ -178,7 +199,7 @@ function handleRequest(e) {
   // Script Property apart from a value mismatch, without exposing either
   // value in a log any script-project collaborator could read.
   var expectedSecret = PropertiesService.getScriptProperties().getProperty("API_SECRET");
-  if (!expectedSecret || body.secret !== expectedSecret) {
+  if (!expectedSecret || !secretsMatch(body.secret, expectedSecret)) {
     Logger.log(
       "[RTG handleRequest] rejected: unauthorized (API_SECRET " +
       (expectedSecret ? "is set" : "is MISSING") + " in Script Properties; request " +
@@ -232,6 +253,48 @@ var REFERRAL_LABELS = {
   other: "Diğer"
 };
 
+// Server-side length limits for the public lead/mentor forms' payloads —
+// Code.gs's own copy of lib/validation/lead.ts's and
+// lib/validation/mentor-application.ts's zod limits, enforced here too
+// because this endpoint must never trust the client's own validation (the
+// same principle handleContactRequest below already documents and applies
+// for the contact form). A field not listed here falls back to the
+// matching *_DEFAULT_MAX_LENGTH.
+var LEAD_MAX_LENGTH = {
+  firstName: 100, lastName: 100, phone: 40, email: 254,
+  stage: 100, educationStatus: 100, interestArea: 100,
+  englishLevel: 50, germanLevel: 50,
+  target: 100, timeline: 100,
+  background: 2000, message: 2000,
+  preferredContact: 50, referralSource: 50, referralSourceOther: 200
+};
+var LEAD_DEFAULT_MAX_LENGTH = 200;
+
+var MENTOR_MAX_LENGTH = {
+  firstName: 100, lastName: 100, phone: 40, email: 254,
+  germanyExperience: 3000, motivation: 3000, message: 2000
+};
+var MENTOR_DEFAULT_MAX_LENGTH = 200;
+
+/**
+ * Validates + cleans one public-form payload field: must be a string,
+ * control-character-stripped (crmCleanText — the same helper the CRM's own
+ * write paths already use, so behavior stays consistent across every write
+ * path in this file), and within maxLength. "email" is additionally
+ * checked against the same shape handleContactRequest already uses.
+ * Returns the cleaned value, or null if the field fails validation.
+ * A missing/absent value is treated as "" here — presence/required-ness is
+ * checked separately, before this runs, exactly as it always has been.
+ */
+function cleanPublicFormField(name, value, maxLength) {
+  if (value === undefined || value === null || value === "") return "";
+  if (typeof value !== "string") return null;
+  var cleaned = crmCleanText(value);
+  if (cleaned.length > maxLength) return null;
+  if (name === "email" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleaned)) return null;
+  return cleaned;
+}
+
 function writeLead(body) {
   var payload = body.payload || {};
   var required = [
@@ -251,6 +314,29 @@ function writeLead(body) {
     return { ok: false, error: "missing_field:referralSourceOther" };
   }
 
+  // Server-side validation of every field's shape/length — never trusts
+  // that the Next.js zod schema (lib/validation/lead.ts) was actually the
+  // caller. Presence was already checked above; this only checks type,
+  // length and (for email) format, then cleans control characters. Any
+  // failure here is reported as diagnosably as the required-field checks
+  // above (field name only — never the value — in both the response and
+  // the log).
+  var clean = {};
+  var fieldsToClean = [
+    "firstName", "lastName", "phone", "email", "preferredContact",
+    "stage", "educationStatus", "interestArea", "englishLevel", "germanLevel",
+    "target", "timeline", "background", "message", "referralSource", "referralSourceOther"
+  ];
+  for (var ci = 0; ci < fieldsToClean.length; ci++) {
+    var cf = fieldsToClean[ci];
+    var cleanedValue = cleanPublicFormField(cf, payload[cf], LEAD_MAX_LENGTH[cf] || LEAD_DEFAULT_MAX_LENGTH);
+    if (cleanedValue === null) {
+      Logger.log("[RTG writeLead] rejected: invalid_field:" + cf);
+      return { ok: false, error: "invalid_field:" + cf };
+    }
+    clean[cf] = cleanedValue;
+  }
+
   // LEADS_RAW is deliberately NOT touched at submission time (see the
   // architecture note at the top) — only LEADS_CRM's header is checked.
   var crmSheet = getSheet(LEADS_CRM_SHEET_NAME, LEADS_CRM_COLUMNS);
@@ -263,17 +349,22 @@ function writeLead(body) {
     return { ok: false, error: "sheet_header_mismatch:" + LEADS_CRM_SHEET_NAME };
   }
 
-  var referralLabel = REFERRAL_LABELS[payload.referralSource] || payload.referralSource;
+  var referralLabel = REFERRAL_LABELS[clean.referralSource] || clean.referralSource;
   // Shared between LEADS_RAW and LEADS_CRM (their columns 3-17 are
   // identical) so the two writes can never silently drift apart.
+  // crmNeutralizeFormula on every cell — a public, unauthenticated form is
+  // the least trusted input in this whole file, so it gets the same
+  // formula-injection defense every other write path here already has
+  // (crmApplyChanges, crmCreate, crmAppendAudit): Sheets would otherwise
+  // execute a value like "=IMPORTXML(...)" the moment staff open the sheet.
   var commonFields = [
-    payload.firstName, payload.lastName, payload.email, payload.phone, payload.preferredContact,
-    payload.stage, payload.educationStatus, payload.interestArea,
-    payload.englishLevel, payload.germanLevel,
-    payload.target, payload.timeline,
-    payload.background, payload.message || "",
+    clean.firstName, clean.lastName, clean.email, clean.phone, clean.preferredContact,
+    clean.stage, clean.educationStatus, clean.interestArea,
+    clean.englishLevel, clean.germanLevel,
+    clean.target, clean.timeline,
+    clean.background, clean.message,
     referralLabel
-  ];
+  ].map(crmNeutralizeFormula);
 
   // Fail before writing anything if this file's own row builder ever drifts
   // from the 23-column LEADS_CRM schema (2 + common + 6 CRM defaults).
@@ -308,7 +399,7 @@ function writeLead(body) {
     id += "-" + String(body.submissionId).replace(/-/g, "").slice(6, 12).toUpperCase();
   }
   var submittedAt = body.submittedAt || new Date().toISOString();
-  var kaynakDetayi = payload.referralSource === "other" ? (payload.referralSourceOther || "") : "";
+  var kaynakDetayi = clean.referralSource === "other" ? clean.referralSourceOther : "";
 
   appendCrmRow(crmSheet, id, submittedAt, commonFields);
 
@@ -400,21 +491,38 @@ function writeMentorApplication(body) {
     if (!payload[required[i]]) return { ok: false, error: "missing_field:" + required[i] };
   }
 
+  // Server-side validation of every field's shape/length — see the
+  // matching comment on writeLead() above; same principle, same helper.
+  var clean = {};
+  var mentorFields = ["firstName", "lastName", "phone", "email", "germanyExperience", "motivation", "message"];
+  for (var mi = 0; mi < mentorFields.length; mi++) {
+    var mf = mentorFields[mi];
+    var cleanedValue = cleanPublicFormField(mf, payload[mf], MENTOR_MAX_LENGTH[mf] || MENTOR_DEFAULT_MAX_LENGTH);
+    if (cleanedValue === null) {
+      Logger.log("[RTG writeMentorApplication] rejected: invalid_field:" + mf);
+      return { ok: false, error: "invalid_field:" + mf };
+    }
+    clean[mf] = cleanedValue;
+  }
+
   var sheet = getSheet(MENTOR_SHEET_NAME, MENTOR_COLUMNS);
 
   var existingId = findBySubmissionId(sheet, body.submissionId);
   if (existingId) return { ok: true, id: existingId };
 
   var id = generateId("M", body.submissionId);
+  // Every cell neutralized against Sheets formula injection (see the
+  // matching comment on writeLead()'s commonFields above) — this is a
+  // public, unauthenticated form, same as writeLead.
   var row = [
     id,
     body.submittedAt || new Date().toISOString(),
     "Yeni",
-    payload.firstName, payload.lastName, payload.email, payload.phone,
-    payload.germanyExperience, payload.motivation, payload.message || "",
+    clean.firstName, clean.lastName, clean.email, clean.phone,
+    clean.germanyExperience, clean.motivation, clean.message,
     "", "", "",
     body.source || "rtg-website", body.submissionId
-  ];
+  ].map(crmNeutralizeFormula);
   sheet.appendRow(row);
   return { ok: true, id: id };
 }
@@ -1106,7 +1214,16 @@ function snapshotLeadProfileToRaw(crmSheet, rawSheet, id, tz) {
     else newRow.push("");
   }
 
-  appendVerifiedRow(rawSheet, LEADS_RAW_SHEET_NAME, LEADS_RAW_COLUMNS.length, id, newRow);
+  // "Kaynak Detayı" (meta.k) is public-form free text (referralSourceOther)
+  // that never passes through LEADS_CRM — the one field in this row NOT
+  // already neutralized by writeLead()'s own commonFields.map(...) before
+  // it got here. The other fields are either developer/system-controlled
+  // (ID, timestamps, Source) or already-neutralized CRM cell values
+  // (profileFields, via crmValue) — re-neutralizing them is a harmless
+  // no-op (crmNeutralizeFormula never touches a value that doesn't start
+  // with =/+/-/@), so the whole row is mapped uniformly rather than
+  // special-casing just the one field that needs it.
+  appendVerifiedRow(rawSheet, LEADS_RAW_SHEET_NAME, LEADS_RAW_COLUMNS.length, id, newRow.map(crmNeutralizeFormula));
 
   // RAW now carries Submission ID itself, which is what idempotency uses
   // from here on — the bridging Script Properties entries are done.
