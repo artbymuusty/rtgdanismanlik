@@ -3,6 +3,7 @@ import { getDictionary } from "@/lib/content";
 import { getLang, type LangParams } from "@/lib/i18n/params";
 import { pageMetadata } from "@/lib/i18n/metadata";
 import { Container } from "@/components/ui/Container";
+import { safeJsonLd } from "@/lib/structured-data";
 
 export async function generateMetadata({ params }: { params: LangParams }): Promise<Metadata> {
   const lang = await getLang(params);
@@ -30,7 +31,7 @@ export default async function FaqPage({ params }: { params: LangParams }) {
     <div className="py-16 sm:py-20">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <Container className="max-w-3xl">
         <h1 className="text-balance font-display text-4xl font-semibold sm:text-5xl">{t.title}</h1>

@@ -8,7 +8,7 @@ import { htmlLang, locales, ogLocale } from "@/lib/i18n/config";
 import { pageMetadata } from "@/lib/i18n/metadata";
 import { getLang, type LangParams } from "@/lib/i18n/params";
 import { siteConfig, getSocialLinks } from "@/lib/site-config";
-import { getOrganizationJsonLd } from "@/lib/structured-data";
+import { getOrganizationJsonLd, safeJsonLd } from "@/lib/structured-data";
 
 // "latin-ext" is required for Turkish: ş Ş ğ Ğ İ ı are not in the plain
 // "latin" subset, so without it the browser draws them from a fallback font.
@@ -93,7 +93,7 @@ export default async function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getOrganizationJsonLd(social, siteConfig.url, t.meta.tagline)),
+            __html: safeJsonLd(getOrganizationJsonLd(social, siteConfig.url, t.meta.tagline)),
           }}
         />
         <a
