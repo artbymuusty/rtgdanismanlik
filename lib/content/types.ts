@@ -240,12 +240,6 @@ export interface Dictionary {
       approachEyebrow: string;
       approachQuote: string;
     };
-    visualStory: {
-      eyebrow: string;
-      title: string;
-      description: string;
-      captions: [string, string, string];
-    };
     universityExplorer: {
       eyebrow: string;
       title: string;

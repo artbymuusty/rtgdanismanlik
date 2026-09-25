@@ -8,8 +8,15 @@
  */
 export const siteConfig = {
   /** Official brand name — shown exactly like this everywhere (header,
-   * footer, page titles, share image, structured data). */
-  name: "RTG Danışmanlık",
+   * footer, page titles, share image, structured data). The public brand
+   * is "RTG" alone (V1.1 brand migration) — never "RTG Danışmanlık" or
+   * "RTG Education" in visitor-facing copy. Internal/technical identifiers
+   * (the CRM's own "RTG CRM" label, LEADS_CRM/LEADS_RAW, the crm_-prefixed
+   * and mentor_application action names, GOOGLE_APPS_SCRIPT_SECRET,
+   * CRM_ADMIN_SECRET, the npm package name, the Apps Script project's own
+   * name) are deliberately untouched by this — they are not public
+   * branding. */
+  name: "RTG",
   shortName: "RTG",
   /** Canonical origin for canonical/hreflang/sitemap/OG URLs. Resolution order:
    * NEXT_PUBLIC_SITE_URL (the real domain — always wins) → the production

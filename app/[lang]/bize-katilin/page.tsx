@@ -30,7 +30,7 @@ export default async function JoinUsPage({ params }: { params: LangParams }) {
         </div>
 
         <div className="relative">
-          <EditorialPhoto alt={t.imageCaption} ratio="4 / 5" src="/images/hero/berlin-hauptbahnhof.jpg" priority />
+          <EditorialPhoto alt={t.imageCaption} ratio="4 / 5" src="/images/people/mentor-consultation.jpg" priority />
           <span className="pointer-events-none absolute bottom-3 left-3 rounded-full border border-line bg-paper/90 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink">
             {t.imageCaption}
           </span>

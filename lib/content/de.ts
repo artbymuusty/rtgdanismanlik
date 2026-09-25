@@ -270,13 +270,6 @@ export const de: Dictionary = {
       approachEyebrow: "Unser Ansatz",
       approachQuote: "Ihre Aufgabe ist nicht, die Bewerbung für dich zu machen, sondern dir die richtige Entscheidung zu erleichtern.",
     },
-    visualStory: {
-      eyebrow: "Alltag",
-      title: "Das Leben in Deutschland ist mehr als eine Bewerbung.",
-      description:
-        "Die Zulassung zu einer Universität ist ein wichtiger Teil des Weges; die eigentliche Geschichte beginnt, wenn du den Campus betrittst und dir in einer neuen Stadt deinen eigenen Alltag aufbaust.",
-      captions: ["Humboldt-Universität", "München", "Bibliotheca Albertina"],
-    },
     universityExplorer: {
       eyebrow: "Universitäten",
       title: "Entdecke Deutschlands weltweit gerankte Universitäten.",
@@ -292,7 +285,7 @@ export const de: Dictionary = {
       indexSearchAriaLabel: "Universität suchen",
       indexEmptyState: "Keine passende Universität.",
       indexClose: "Schließen",
-      photoPending: "Foto folgt in Kürze",
+      photoPending: "Kein Kampusfoto verfügbar",
     },
     humanConnection: {
       eyebrow: "Lass uns gemeinsam beginnen",
@@ -301,8 +294,8 @@ export const de: Dictionary = {
       description:
         "Wir wollen dir nichts verkaufen; wir hören zuerst deiner Situation zu und beraten dich ehrlich, ohne einen Weg, der nicht zu dir passt, als passend darzustellen.",
       cta: "Lass uns über deinen Weg sprechen",
-      imageSrc: "/images/cities/frankfurt.jpg",
-      imageAlt: "Frankfurt, Deutschland",
+      imageSrc: "/images/germany/humboldt-campus.jpg",
+      imageAlt: "Studierende versammeln sich im Innenhof eines Universitätscampus",
     },
     faqPreview: {
       title: "Häufig gestellte Fragen",
@@ -458,8 +451,6 @@ export const de: Dictionary = {
   },
   about: {
     title: "Über uns",
-    imageSrc: "/images/cities/cologne.jpg",
-    imageAlt: "Köln, Deutschland",
     intro: "Wir sind ein System, das von Menschen aufgebaut wurde, die wissen, wie sich dieser Prozess anfühlt.",
     sections: [
       {
@@ -619,7 +610,7 @@ export const de: Dictionary = {
       cta: "Lass uns über deinen Weg sprechen",
     },
     photoCaption: "Ein Gespräch beginnt",
-    photoAlt: "Frankfurt, Deutschland",
+    photoAlt: "Zwei Personen unterhalten sich an einem Tisch",
     composer: {
       title: "Schreib uns",
       description: "Sende deine Frage, dein Anliegen oder deine Anfrage direkt an uns. Deine Nachricht erreicht das zuständige Team.",

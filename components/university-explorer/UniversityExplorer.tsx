@@ -8,6 +8,7 @@ import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { EditorialPhoto } from "@/components/ui/EditorialPhoto";
 import { UniversityIndex } from "./UniversityIndex";
+import { UniversityImagePlaceholder } from "./UniversityImagePlaceholder";
 
 type ExplorerText = Dictionary["home"]["universityExplorer"];
 
@@ -141,18 +142,24 @@ export function UniversityExplorer({ lang, t }: { lang: Locale; t: ExplorerText 
         >
           <div key={current.id} className={"grid grid-cols-1 gap-4 sm:grid-cols-5 " + slideAnimationClass}>
             <div className="relative sm:col-span-3">
-              <EditorialPhoto
-                alt={current.images?.primary.alt ?? `${current.name}, ${city}`}
-                ratio="3 / 4"
-                src={current.images?.primary.src}
-                priority={index === 0}
-                sizes="(min-width: 1024px) 45vw, 100vw"
-              />
-              {!current.images ? (
-                <span className="pointer-events-none absolute right-3 top-3 rounded-full border border-line bg-paper/90 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
-                  {t.photoPending}
-                </span>
-              ) : null}
+              {current.images?.primary ? (
+                <EditorialPhoto
+                  alt={current.images.primary.alt}
+                  ratio="3 / 4"
+                  src={current.images.primary.src}
+                  priority={index === 0}
+                  sizes="(min-width: 1024px) 45vw, 100vw"
+                />
+              ) : (
+                <UniversityImagePlaceholder
+                  ratio="3 / 4"
+                  name={current.name}
+                  city={city}
+                  rankLabel={t.rankLabel}
+                  qsRank={current.qsRank}
+                  unavailableLabel={t.photoPending}
+                />
+              )}
               <div className="pointer-events-none absolute inset-x-3 bottom-3 flex items-end justify-between gap-2 rounded-[3px] border border-line bg-paper/90 px-3.5 py-2.5">
                 <span className="min-w-0">
                   <span className="block truncate font-display text-base font-semibold text-ink">{current.name}</span>
@@ -164,18 +171,40 @@ export function UniversityExplorer({ lang, t }: { lang: Locale; t: ExplorerText 
               </div>
             </div>
             <div className="flex flex-col gap-4 sm:col-span-2">
-              <EditorialPhoto
-                alt={current.images?.secondary?.alt ?? `${current.name} ${t.rankLabel} #${current.qsRank}`}
-                ratio="1 / 1"
-                src={current.images?.secondary?.src}
-                sizes="(min-width: 1024px) 25vw, 100vw"
-              />
-              <EditorialPhoto
-                alt={current.images?.tertiary?.alt ?? `${current.name} ${city}`}
-                ratio="16 / 10"
-                src={current.images?.tertiary?.src}
-                sizes="(min-width: 1024px) 25vw, 100vw"
-              />
+              {current.images?.secondary ? (
+                <EditorialPhoto
+                  alt={current.images.secondary.alt}
+                  ratio="1 / 1"
+                  src={current.images.secondary.src}
+                  sizes="(min-width: 1024px) 25vw, 100vw"
+                />
+              ) : (
+                <UniversityImagePlaceholder
+                  ratio="1 / 1"
+                  name={current.name}
+                  city={city}
+                  rankLabel={t.rankLabel}
+                  qsRank={current.qsRank}
+                  unavailableLabel={t.photoPending}
+                />
+              )}
+              {current.images?.tertiary ? (
+                <EditorialPhoto
+                  alt={current.images.tertiary.alt}
+                  ratio="16 / 10"
+                  src={current.images.tertiary.src}
+                  sizes="(min-width: 1024px) 25vw, 100vw"
+                />
+              ) : (
+                <UniversityImagePlaceholder
+                  ratio="16 / 10"
+                  name={current.name}
+                  city={city}
+                  rankLabel={t.rankLabel}
+                  qsRank={current.qsRank}
+                  unavailableLabel={t.photoPending}
+                />
+              )}
             </div>
           </div>
         </div>

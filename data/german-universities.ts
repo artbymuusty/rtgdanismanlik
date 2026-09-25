@@ -21,12 +21,14 @@
  * suitable representative photo (the only candidate was a small, low-
  * resolution statue close-up), so it was deliberately left without an
  * `images` field rather than force a weak or mismatched picture in —
- * <EditorialPhoto> renders its existing placeholder motif for it (never
- * a broken image, never a mismatched stock photo). A handful of other
- * entries have only 2 images (or, for bochum/konstanz, just 1) where a
- * third well-matched candidate could not be found — see `images.tertiary`
- * / `images.secondary` being absent; the component and <EditorialPhoto>
- * already handle a missing slot by falling back to the placeholder.
+ * <UniversityImagePlaceholder> renders an honest editorial information
+ * panel for it instead (name/city/rank + "no campus image" copy — never a
+ * broken image, never a mismatched stock photo, and deliberately never
+ * styled to look like a photograph, real or generated). A handful of
+ * other entries have only 2 images (or, for bochum/konstanz, just 1)
+ * where a third well-matched candidate could not be found — see
+ * `images.tertiary` / `images.secondary` being absent; the Explorer
+ * component already handles a missing slot the same way, per-slot.
  * Downloaded at ~1280px wide into public/images/universities/<id>/ (a
  * couple of files that Wikimedia's thumbnailer rate-limited fell back to
  * ~500px — still sharp at this component's display sizes). Swapping in

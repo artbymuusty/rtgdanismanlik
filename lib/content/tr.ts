@@ -273,13 +273,6 @@ export const tr: Dictionary = {
       approachEyebrow: "Yaklaşımımız",
       approachQuote: "Görevleri senin yerine başvuru yapmak değil, doğru kararı vermeni kolaylaştırmak.",
     },
-    visualStory: {
-      eyebrow: "Günlük Hayat",
-      title: "Almanya'da hayat, başvurudan ibaret değil.",
-      description:
-        "Bir üniversiteye kabul edilmek yolculuğun önemli bir parçası; asıl hikâye kampüse adım attığında, yeni bir şehirde kendi düzenini kurduğunda başlıyor.",
-      captions: ["Humboldt Üniversitesi", "Münih", "Bibliotheca Albertina"],
-    },
     universityExplorer: {
       eyebrow: "Üniversiteler",
       title: "Almanya'nın dünya sıralamalarında öne çıkan üniversitelerini keşfet.",
@@ -295,7 +288,7 @@ export const tr: Dictionary = {
       indexSearchAriaLabel: "Üniversite ara",
       indexEmptyState: "Eşleşen üniversite yok.",
       indexClose: "Kapat",
-      photoPending: "Görsel yakında eklenecek",
+      photoPending: "Kampüs görseli mevcut değil",
     },
     humanConnection: {
       eyebrow: "Birlikte Başlayalım",
@@ -304,8 +297,8 @@ export const tr: Dictionary = {
       description:
         "Sana bir şey satmaya çalışmıyoruz; önce durumunu dinliyor, sana uygun olmayan bir yolu “uygun” gibi göstermeden dürüstçe yol gösteriyoruz.",
       cta: "Yolculuğunu Konuşalım",
-      imageSrc: "/images/cities/frankfurt.jpg",
-      imageAlt: "Frankfurt, Almanya",
+      imageSrc: "/images/germany/humboldt-campus.jpg",
+      imageAlt: "Öğrenciler bir üniversite kampüsünün iç bahçesinde bir araya geliyor",
     },
     faqPreview: {
       title: "Sıkça sorulan sorular",
@@ -461,8 +454,6 @@ export const tr: Dictionary = {
   },
   about: {
     title: "Hakkımızda",
-    imageSrc: "/images/cities/cologne.jpg",
-    imageAlt: "Köln, Almanya",
     intro:
       "Biz, bu sürecin nasıl hissettirdiğini bilen insanların kurduğu bir yapıyız.",
     sections: [
@@ -624,7 +615,7 @@ export const tr: Dictionary = {
       cta: "Yolculuğunu Konuşalım",
     },
     photoCaption: "Bir görüşme başlıyor",
-    photoAlt: "Frankfurt, Almanya",
+    photoAlt: "İki kişi bir masada karşılıklı sohbet ediyor",
     composer: {
       title: "Bize yaz",
       description: "Sorunu, sorununu veya talebini doğrudan bize ilet. Mesajın ilgili ekibe ulaştırılır.",

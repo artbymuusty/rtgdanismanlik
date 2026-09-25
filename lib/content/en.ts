@@ -269,13 +269,6 @@ export const en: Dictionary = {
       approachEyebrow: "Our approach",
       approachQuote: "Their job isn't to apply for you, it's to make it easier for you to make the right decision.",
     },
-    visualStory: {
-      eyebrow: "Everyday Life",
-      title: "Life in Germany is more than an application.",
-      description:
-        "Being accepted to a university is an important part of the journey; the real story begins when you step onto campus and build your own routine in a new city.",
-      captions: ["Humboldt University", "Munich", "Bibliotheca Albertina"],
-    },
     universityExplorer: {
       eyebrow: "Universities",
       title: "Discover Germany's world-ranked universities.",
@@ -291,7 +284,7 @@ export const en: Dictionary = {
       indexSearchAriaLabel: "Search universities",
       indexEmptyState: "No matching university.",
       indexClose: "Close",
-      photoPending: "Photo coming soon",
+      photoPending: "Campus image not available",
     },
     humanConnection: {
       eyebrow: "Let's Start Together",
@@ -300,8 +293,8 @@ export const en: Dictionary = {
       description:
         "We're not trying to sell you anything; we listen to your situation first, and we honestly guide you without presenting a path that doesn't suit you as if it did.",
       cta: "Let's Talk About Your Journey",
-      imageSrc: "/images/cities/frankfurt.jpg",
-      imageAlt: "Frankfurt, Germany",
+      imageSrc: "/images/germany/humboldt-campus.jpg",
+      imageAlt: "Students gathering in a university campus courtyard",
     },
     faqPreview: {
       title: "Frequently asked questions",
@@ -457,8 +450,6 @@ export const en: Dictionary = {
   },
   about: {
     title: "About Us",
-    imageSrc: "/images/cities/cologne.jpg",
-    imageAlt: "Cologne, Germany",
     intro: "We're a system built by people who know how this process feels.",
     sections: [
       {
@@ -618,7 +609,7 @@ export const en: Dictionary = {
       cta: "Let's Talk About Your Journey",
     },
     photoCaption: "A conversation is starting",
-    photoAlt: "Frankfurt, Germany",
+    photoAlt: "Two people talking with each other across a table",
     composer: {
       title: "Write to us",
       description: "Send your question, issue, or request directly to us. Your message reaches the right team.",

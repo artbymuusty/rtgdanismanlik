@@ -65,7 +65,7 @@ export default async function ContactPage({ params }: { params: LangParams }) {
         </div>
 
         <div className="relative hidden lg:block">
-          <EditorialPhoto src="/images/cities/frankfurt.jpg" alt={t.photoAlt} ratio="4 / 5" sizes="35vw" priority />
+          <EditorialPhoto src="/images/people/contact-conversation.jpg" alt={t.photoAlt} ratio="4 / 5" sizes="35vw" priority />
           <span className="pointer-events-none absolute bottom-4 left-4 rounded-full border border-line bg-paper/90 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink">
             {t.photoCaption}
           </span>
